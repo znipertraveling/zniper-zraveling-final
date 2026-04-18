@@ -1,54 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zniper Zraveling · Artículo</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: #050505; color: #e0e0e0; padding: 2rem 1.5rem; }
-        .contenedor { max-width: 800px; margin: 0 auto; }
-        .volver { color: #888; text-decoration: none; font-size: 0.8rem; }
-        h1 { margin: 1rem 0 0.5rem; font-weight: 300; }
-        .fecha { font-size: 0.7rem; color: #666; margin-bottom: 1.5rem; }
-        .contenido { line-height: 1.6; color: #ccc; }
-        .contenido img { max-width: 100%; margin: 1rem 0; }
-        .comentarios { margin-top: 2rem; border-top: 1px solid #222; padding-top: 1.5rem; }
-        .comentario { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 1rem; margin-bottom: 1rem; }
-        .nick { font-weight: bold; color: #ddd; }
-        .calificacion { color: #ffcc00; font-size: 0.8rem; }
-        .fecha-com { font-size: 0.6rem; color: #666; margin-left: 1rem; }
-        .respuesta { margin-left: 2rem; margin-top: 0.5rem; padding-left: 1rem; border-left: 2px solid #333; }
-        .form-comentario { margin-top: 1.5rem; background: #0a0a0a; padding: 1rem; border: 1px solid #1a1a1a; }
-        .form-comentario input, .form-comentario textarea, .form-comentario select { width: 100%; background: #111; border: 1px solid #333; padding: 0.5rem; color: white; margin-bottom: 0.5rem; }
-        .form-comentario button { background: #222; border: none; padding: 0.5rem; color: white; cursor: pointer; }
-        .footer { margin-top: 2rem; text-align: center; color: #444; font-size: 0.7rem; }
-    </style>
-</head>
-<body>
-<div class="contenedor"><a href="/blog" class="volver">← Volver al blog</a><h1 id="titulo"></h1><div class="fecha" id="fecha"></div><div class="contenido" id="contenido"></div>
-<div class="comentarios"><h3>💬 Comentarios</h3><div id="comentarios-lista"></div>
-<div class="form-comentario"><input type="text" id="nickname" placeholder="Tu nombre"><select id="calificacion"><option value="5">⭐⭐⭐⭐⭐ 5</option><option value="4">⭐⭐⭐⭐ 4</option><option value="3">⭐⭐⭐ 3</option><option value="2">⭐⭐ 2</option><option value="1">⭐ 1</option></select><textarea id="texto" rows="3" placeholder="Tu comentario"></textarea><button id="enviarComentario">Enviar comentario</button></div></div>
-<div class="footer">Zniper Zraveling · autor · 2026</div></div>
-<script>
-const id = window.location.pathname.split('/')[2];
-let datosGlobales=null;
-async function cargarTodo(){ const r=await fetch('/api/datos'); datosGlobales=await r.json(); const art=datosGlobales.blog.find(a=>a.id==id); if(!art){document.getElementById('titulo').textContent='No encontrado'; return;}
-    document.getElementById('titulo').textContent=art.titulo; document.getElementById('fecha').textContent=art.fecha;
-    let cont=art.texto.replace(/\n/g,'<br>'); if(art.imagen) cont=`<img src="${art.imagen}">${cont}`;
-    document.getElementById('contenido').innerHTML=cont;
-    const comentarios=(datosGlobales.comentarios||[]).filter(c=>c.tipo==='blog' && c.entidad_id==id && c.aprobado===true);
-    const lista=document.getElementById('comentarios-lista');
-    if(comentarios.length===0) lista.innerHTML='<p>Sin comentarios aún. Sé el primero.</p>';
-    else{ let html=''; for(let c of comentarios){ html+=`<div class="comentario"><div><span class="nick">${c.nickname}</span><span class="calificacion"> ${'⭐'.repeat(c.calificacion)}</span><span class="fecha-com">${c.fecha}</span></div><div>${c.texto}</div>`;
-        if(c.respuestas && c.respuestas.length){ for(let r of c.respuestas) html+=`<div class="respuesta"><strong>Zniper:</strong> ${r.texto}<br><small>${r.fecha}</small></div>`;}
-        html+=`</div>`;}
-        lista.innerHTML=html;}
-}
-document.getElementById('enviarComentario').onclick=async()=>{ const nickname=document.getElementById('nickname').value.trim(); const texto=document.getElementById('texto').value.trim(); const calificacion=parseInt(document.getElementById('calificacion').value); if(!nickname || !texto){alert('Completa nombre y comentario'); return;}
-    await fetch('/api/comentarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'blog',entidad_id:id,nickname,calificacion,texto})});
-    document.getElementById('texto').value=''; cargarTodo(); alert('Comentario enviado (pendiente de aprobación si la moderación está activa)');};
-cargarTodo();
-</script>
-</body>
-</html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Zniper Zraveling · Artículo</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Inter',sans-serif;background:#050505;color:#e0e0e0;padding:2rem 1.5rem;}.contenedor{max-width:800px;margin:0 auto;}.volver{color:#888;text-decoration:none;font-size:0.8rem;}h1{margin:1rem 0 0.5rem;font-weight:300;}.fecha{font-size:0.7rem;color:#666;margin-bottom:1.5rem;}.contenido{line-height:1.6;color:#ccc;}.contenido img{max-width:100%;margin:1rem 0;}.comentarios{margin-top:2rem;border-top:1px solid #222;padding-top:1.5rem;}.comentario{background:#0a0a0a;border:1px solid #1a1a1a;padding:1rem;margin-bottom:1rem;}.nick{font-weight:bold;color:#ddd;}.calificacion{color:#ffcc00;font-size:0.8rem;}.fecha-com{font-size:0.6rem;color:#666;margin-left:1rem;}.respuesta{margin-left:2rem;margin-top:0.5rem;padding-left:1rem;border-left:2px solid #333;}.form-comentario{margin-top:1.5rem;background:#0a0a0a;padding:1rem;border:1px solid #1a1a1a;}.form-comentario input,.form-comentario textarea,.form-comentario select{width:100%;background:#111;border:1px solid #333;padding:0.5rem;color:white;margin-bottom:0.5rem;}.form-comentario button{background:#222;border:none;padding:0.5rem;color:white;cursor:pointer;}.footer{margin-top:2rem;text-align:center;color:#444;font-size:0.7rem;}</style></head>
+<body><div class="contenedor"><a href="/blog" class="volver">← Volver al blog</a><h1 id="titulo"></h1><div class="fecha" id="fecha"></div><div class="contenido" id="contenido"></div><div class="comentarios"><h3>💬 Comentarios</h3><div id="comentarios-lista"></div><div class="form-comentario"><input type="text" id="nickname" placeholder="Tu nombre"><select id="calificacion"><option value="5">⭐⭐⭐⭐⭐ 5</option><option value="4">⭐⭐⭐⭐ 4</option><option value="3">⭐⭐⭐ 3</option><option value="2">⭐⭐ 2</option><option value="1">⭐ 1</option></select><textarea id="texto" rows="3" placeholder="Tu comentario"></textarea><button id="enviarComentario">Enviar comentario</button></div></div><div class="footer">Zniper Zraveling · autor · 2026</div></div>
+<script>const id=window.location.pathname.split('/')[2]; let datosGlobales=null; async function cargarTodo(){ const r=await fetch('/api/datos'); datosGlobales=await r.json(); const art=datosGlobales.blog.find(a=>a.id==id); if(!art){document.getElementById('titulo').textContent='No encontrado'; return;} document.getElementById('titulo').textContent=art.titulo; document.getElementById('fecha').textContent=art.fecha; let cont=art.texto.replace(/\n/g,'<br>'); if(art.imagen) cont=`<img src="${art.imagen}">${cont}`; document.getElementById('contenido').innerHTML=cont; const comentarios=(datosGlobales.comentarios||[]).filter(c=>c.tipo==='blog' && c.entidad_id==id && c.aprobado===true); const lista=document.getElementById('comentarios-lista'); if(comentarios.length===0) lista.innerHTML='<p>Sin comentarios aún. Sé el primero.</p>'; else{ let html=''; for(let c of comentarios){ html+=`<div class="comentario"><div><span class="nick">${c.nickname}</span><span class="calificacion"> ${'⭐'.repeat(c.calificacion)}</span><span class="fecha-com">${c.fecha}</span></div><div>${c.texto}</div>`; if(c.respuestas && c.respuestas.length){ for(let r of c.respuestas) html+=`<div class="respuesta"><strong>Zniper:</strong> ${r.texto}<br><small>${r.fecha}</small></div>`;} html+=`</div>`;} lista.innerHTML=html;} } document.getElementById('enviarComentario').onclick=async()=>{ const nickname=document.getElementById('nickname').value.trim(); const texto=document.getElementById('texto').value.trim(); const calificacion=parseInt(document.getElementById('calificacion').value); if(!nickname || !texto){alert('Completa nombre y comentario'); return;} await fetch('/api/comentarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'blog',entidad_id:id,nickname,calificacion,texto})}); document.getElementById('texto').value=''; cargarTodo(); alert('Comentario enviado (pendiente de aprobación si la moderación está activa)');}; cargarTodo();</script></body></html>

@@ -25,7 +25,7 @@ CREDENCIALES_FILE = 'credenciales.json'
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Datos por defecto (estructura completa)
+# Datos por defecto
 DATOS_POR_DEFECTO = {
     "titulo": "Zniper Zraveling",
     "subtitulo": "fotografía de autor · calle como poema · instante como herida",
@@ -41,7 +41,8 @@ DATOS_POR_DEFECTO = {
     "proximo_pagina_id": 2,
     "comentarios": [],
     "proximo_comentario_id": 1,
-    "moderacion_comentarios": True   # True = aprobación automática, False = manual
+    "moderacion_comentarios": True,
+    "instagram": "https://instagram.com/znipertraveling"
 }
 
 CREDENCIALES_POR_DEFECTO = {
@@ -140,7 +141,8 @@ def get_datos():
         "blog": datos["blog"],
         "paginas": datos["paginas"],
         "comentarios": datos["comentarios"],
-        "moderacion_comentarios": datos.get("moderacion_comentarios", True)
+        "moderacion_comentarios": datos.get("moderacion_comentarios", True),
+        "instagram": datos.get("instagram", "https://instagram.com/znipertraveling")
     })
 
 @app.route('/api/datos', methods=['POST'])
@@ -148,7 +150,7 @@ def get_datos():
 def update_datos():
     datos = cargar_datos()
     data = request.json
-    for key in ['titulo', 'subtitulo', 'firma', 'categorias', 'moderacion_comentarios']:
+    for key in ['titulo', 'subtitulo', 'firma', 'categorias', 'moderacion_comentarios', 'instagram']:
         if key in data:
             datos[key] = data[key]
     guardar_datos(datos)
@@ -162,6 +164,7 @@ def reordenar_categorias():
     guardar_datos(datos)
     return jsonify({"success": True})
 
+# Blog
 @app.route('/api/blog', methods=['POST'])
 @login_required
 def add_blog():
@@ -199,6 +202,7 @@ def delete_blog(id):
     guardar_datos(datos)
     return jsonify({"success": True})
 
+# Páginas
 @app.route('/api/paginas', methods=['POST'])
 @login_required
 def add_pagina():
@@ -239,19 +243,20 @@ def delete_pagina(id):
     guardar_datos(datos)
     return jsonify({"success": True})
 
+# Comentarios
 @app.route('/api/comentarios', methods=['POST'])
 def add_comentario():
     datos = cargar_datos()
     data = request.json
     nuevo = {
         "id": datos["proximo_comentario_id"],
-        "tipo": data.get('tipo'),  # 'blog' o 'serie'
+        "tipo": data.get('tipo'),
         "entidad_id": data.get('entidad_id'),
         "nickname": data.get('nickname', 'Anónimo'),
         "calificacion": data.get('calificacion', 0),
         "texto": data.get('texto', ''),
         "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "aprobado": datos.get("moderacion_comentarios", True),  # True si moderación OFF, False si requiere aprobación
+        "aprobado": datos.get("moderacion_comentarios", True),
         "respuestas": []
     }
     datos["comentarios"].append(nuevo)
@@ -295,6 +300,7 @@ def responder_comentario(id):
     guardar_datos(datos)
     return jsonify({"success": True})
 
+# Fotos
 @app.route('/api/fotos', methods=['POST'])
 @login_required
 def add_foto():
