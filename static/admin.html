@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zniper Admin · Panel de control</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #050505;
+            color: #e0e0e0;
+            padding: 1.5rem;
+        }
+        .header {
+            max-width: 1400px;
+            margin: 0 auto 1.5rem auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            border-bottom: 1px solid #222;
+            padding-bottom: 1rem;
+        }
+        .header h1 { font-size: 1.3rem; font-weight: 300; letter-spacing: 2px; }
+        .btn-header {
+            background: transparent;
+            border: 1px solid #333;
+            padding: 0.4rem 1rem;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .btn-header:hover { background: #1a1a1a; color: white; }
+        .contenedor { max-width: 1400px; margin: 0 auto; }
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid #222;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            color: #777;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+        .tab-btn:hover { color: white; }
+        .tab-btn.activo { color: white; border-bottom: 2px solid white; }
+        .tab-panel { display: none; }
+        .tab-panel.activo { display: block; }
+        .seccion {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .seccion h3 {
+            font-weight: 300;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+        .campo { margin-bottom: 1rem; }
+        .campo label {
+            display: block;
+            font-size: 0.7rem;
+            color: #888;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+        }
+        .campo input, .campo textarea, .campo select {
+            width: 100%;
+            background: #111;
+            border: 1px solid #333;
+            padding: 0.6rem;
+            color: white;
+            font-size: 0.8rem;
+        }
+        .guardar-btn {
+            background: #222;
+            border: none;
+            padding: 0.5rem 1rem;
+            color: white;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: 0.2s;
+        }
+        .guardar-btn:hover { background: #333; }
+        .categorias-lista, .fotos-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .categoria-item, .foto-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #111;
+            padding: 0.5rem;
+            border: 1px solid #222;
+        }
+        .drag-handle {
+            cursor: grab;
+            color: #555;
+            font-size: 1.2rem;
+            user-select: none;
+        }
+        .drag-handle:active { cursor: grabbing; }
+        .categoria-item input { flex: 1; background: #1a1a1a; border: 1px solid #333; padding: 0.3rem; color: white; }
+        .foto-item { flex-wrap: wrap; }
+        .foto-item img { width: 60px; height: 60px; object-fit: cover; }
+        .foto-info { flex: 1; min-width: 200px; }
+        .foto-info input, .foto-info select { width: 100%; margin-bottom: 0.3rem; }
+        button { background: #222; border: 1px solid #444; color: #aaa; padding: 0.3rem 0.6rem; cursor: pointer; }
+        button:hover { background: #333; color: white; }
+        .dropzone {
+            border: 2px dashed #333;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            cursor: pointer;
+        }
+        .mensaje {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 0.5rem 1rem;
+            font-size: 0.7rem;
+            z-index: 1000;
+        }
+        .error { color: #ff8888; }
+        .exito { color: #88ff88; }
+        @media (max-width: 700px) { .foto-item { flex-direction: column; align-items: stretch; } .foto-item img { width: 100%; height: auto; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ZNIPER ZRAVELING · ADMIN</h1>
+        <div>
+            <button class="btn-header" id="verGaleriaBtn">VER GALERÍA</button>
+            <button class="btn-header" id="cerrarSesion">CERRAR SESIÓN</button>
+        </div>
+    </div>
+
+    <div class="contenedor">
+        <div class="tabs">
+            <button class="tab-btn activo" data-tab="config">📝 CONFIGURACIÓN</button>
+            <button class="tab-btn" data-tab="categorias">🏷️ CATEGORÍAS</button>
+            <button class="tab-btn" data-tab="fotos">📸 FOTOS</button>
+            <button class="tab-btn" data-tab="credenciales">🔐 CREDENCIALES</button>
+        </div>
+
+        <div id="tab-config" class="tab-panel activo">
+            <div class="seccion">
+                <h3>Configuración general del sitio</h3>
+                <div class="campo">
+                    <label>Título del sitio</label>
+                    <input type="text" id="titulo" placeholder="Zniper Zraveling">
+                </div>
+                <div class="campo">
+                    <label>Subtítulo</label>
+                    <input type="text" id="subtitulo" placeholder="fotografía de autor...">
+                </div>
+                <div class="campo">
+                    <label>Frase / firma</label>
+                    <input type="text" id="firma" placeholder="— mi ojo, mi sombra...">
+                </div>
+                <button class="guardar-btn" id="guardarConfig">GUARDAR CAMBIOS</button>
+            </div>
+        </div>
+
+        <div id="tab-categorias" class="tab-panel">
+            <div class="seccion">
+                <h3>Gestionar categorías (arrastra para reordenar)</h3>
+                <div id="categorias-lista" class="categorias-lista"></div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <input type="text" id="nuevaCategoria" placeholder="Nueva categoría" style="flex: 1;">
+                    <button id="agregarCategoria">+ AGREGAR</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-fotos" class="tab-panel">
+            <div class="seccion">
+                <h3>Subir nueva foto</h3>
+                <div id="dropzone" class="dropzone">
+                    📸 Arrastra una foto aquí o haz clic para seleccionar
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                </div>
+                <div class="campo">
+                    <label>Título</label>
+                    <input type="text" id="nuevaFotoTitulo" placeholder="Título de la foto">
+                </div>
+                <div class="campo">
+                    <label>Categoría</label>
+                    <select id="nuevaFotoCategoria"></select>
+                </div>
+                <div class="campo">
+                    <label>Orientación</label>
+                    <select id="nuevaFotoOrientacion">
+                        <option value="vertical">Vertical</option>
+                        <option value="horizontal">Horizontal</option>
+                    </select>
+                </div>
+                <button class="guardar-btn" id="subirFotoBtn">SUBIR FOTO</button>
+            </div>
+
+            <div class="seccion">
+                <h3>Todas las fotos (arrastra para reordenar)</h3>
+                <div id="fotos-lista" class="fotos-lista"></div>
+            </div>
+        </div>
+
+        <div id="tab-credenciales" class="tab-panel">
+            <div class="seccion">
+                <h3>Cambiar credenciales de acceso</h3>
+                <div class="campo">
+                    <label>Nuevo nickname</label>
+                    <input type="text" id="nuevoNickname" placeholder="zniper">
+                </div>
+                <div class="campo">
+                    <label>Nueva contraseña</label>
+                    <input type="password" id="nuevaPassword" placeholder="••••••">
+                </div>
+                <button class="guardar-btn" id="guardarCredenciales">CAMBIAR CREDENCIALES</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mensaje" class="mensaje" style="display: none;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script>
+        if (!sessionStorage.getItem('zniper_auth')) {
+            window.location.href = '/login';
+        }
+
+        let datos = { categorias: [], fotos: [] };
+        let sortableCats, sortableFotos;
+
+        function mostrarMensaje(texto, tipo = 'exito') {
+            const msg = document.getElementById('mensaje');
+            msg.textContent = texto;
+            msg.style.color = tipo === 'exito' ? '#88ff88' : '#ff8888';
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 3000);
+        }
+
+        async function cargarDatos() {
+            const res = await fetch('/api/datos');
+            datos = await res.json();
+            document.getElementById('titulo').value = datos.titulo || '';
+            document.getElementById('subtitulo').value = datos.subtitulo || '';
+            document.getElementById('firma').value = datos.firma || '';
+            renderCategorias();
+            renderFotos();
+            llenarSelectCategorias();
+        }
+
+        function renderCategorias() {
+            const container = document.getElementById('categorias-lista');
+            if (!datos.categorias || datos.categorias.length === 0) {
+                container.innerHTML = '<p style="color:#555;">No hay categorías. Crea una.</p>';
+                return;
+            }
+            container.innerHTML = datos.categorias.map((cat, i) => `
+                <div class="categoria-item" data-idx="${i}">
+                    <span class="drag-handle">⋮⋮</span>
+                    <input type="text" value="${escapeHtml(cat)}" data-idx="${i}" class="cat-nombre">
+                    <button class="eliminar-cat" data-idx="${i}">✕</button>
+                </div>
+            `).join('');
+            if (sortableCats) sortableCats.destroy();
+            sortableCats = new Sortable(container, {
+                handle: '.drag-handle',
+                onEnd: async () => {
+                    const nuevosOrden = Array.from(container.querySelectorAll('.cat-nombre')).map(inp => inp.value);
+                    await fetch('/api/categorias/reordenar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ categorias: nuevosOrden })
+                    });
+                    cargarDatos();
+                    mostrarMensaje('Orden de categorías guardado');
+                }
+            });
+            document.querySelectorAll('.eliminar-cat').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const idx = parseInt(btn.dataset.idx);
+                    const nuevas = datos.categorias.filter((_, i) => i !== idx);
+                    await fetch('/api/datos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ categorias: nuevas })
+                    });
+                    cargarDatos();
+                    mostrarMensaje('Categoría eliminada');
+                });
+            });
+            document.querySelectorAll('.cat-nombre').forEach(inp => {
+                inp.addEventListener('change', async () => {
+                    const idx = parseInt(inp.dataset.idx);
+                    const nuevas = [...datos.categorias];
+                    nuevas[idx] = inp.value;
+                    await fetch('/api/datos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ categorias: nuevas })
+                    });
+                    cargarDatos();
+                    mostrarMensaje('Categoría actualizada');
+                });
+            });
+        }
+
+        function renderFotos() {
+            const container = document.getElementById('fotos-lista');
+            if (!datos.fotos || datos.fotos.length === 0) {
+                container.innerHTML = '<p style="color:#555;">No hay fotos aún. Sube tu primera foto.</p>';
+                return;
+            }
+            container.innerHTML = datos.fotos.map((foto, i) => `
+                <div class="foto-item" data-id="${foto.id}" data-idx="${i}">
+                    <span class="drag-handle">⋮⋮</span>
+                    <img src="${foto.archivo}" alt="${foto.titulo}">
+                    <div class="foto-info">
+                        <input type="text" value="${escapeHtml(foto.titulo)}" class="foto-titulo" data-id="${foto.id}">
+                        <select class="foto-categoria" data-id="${foto.id}">${datos.categorias.map(c => `<option value="${c}" ${foto.categoria === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
+                        <select class="foto-orientacion" data-id="${foto.id}">
+                            <option value="vertical" ${foto.orientacion === 'vertical' ? 'selected' : ''}>Vertical</option>
+                            <option value="horizontal" ${foto.orientacion === 'horizontal' ? 'selected' : ''}>Horizontal</option>
+                        </select>
+                    </div>
+                    <button class="eliminar-foto" data-id="${foto.id}">✕</button>
+                </div>
+            `).join('');
+            if (sortableFotos) sortableFotos.destroy();
+            sortableFotos = new Sortable(container, {
+                handle: '.drag-handle',
+                onEnd: async () => {
+                    const nuevosIds = Array.from(container.querySelectorAll('.foto-item')).map(el => parseInt(el.dataset.id));
+                    await fetch('/api/fotos/reordenar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ids: nuevosIds })
+                    });
+                    mostrarMensaje('Orden de fotos guardado');
+                }
+            });
+            document.querySelectorAll('.eliminar-foto').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (confirm('¿Eliminar esta foto?')) {
+                        await fetch(`/api/fotos/${btn.dataset.id}`, { method: 'DELETE' });
+                        cargarDatos();
+                        mostrarMensaje('Foto eliminada');
+                    }
+                });
+            });
+            document.querySelectorAll('.foto-titulo').forEach(inp => {
+                inp.addEventListener('change', async () => {
+                    await fetch(`/api/fotos/${inp.dataset.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ titulo: inp.value })
+                    });
+                    mostrarMensaje('Título actualizado');
+                });
+            });
+            document.querySelectorAll('.foto-categoria').forEach(sel => {
+                sel.addEventListener('change', async () => {
+                    await fetch(`/api/fotos/${sel.dataset.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ categoria: sel.value })
+                    });
+                    mostrarMensaje('Categoría actualizada');
+                });
+            });
+            document.querySelectorAll('.foto-orientacion').forEach(sel => {
+                sel.addEventListener('change', async () => {
+                    await fetch(`/api/fotos/${sel.dataset.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orientacion: sel.value })
+                    });
+                    mostrarMensaje('Orientación actualizada');
+                });
+            });
+        }
+
+        function llenarSelectCategorias() {
+            const select = document.getElementById('nuevaFotoCategoria');
+            select.innerHTML = datos.categorias.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+        document.getElementById('guardarConfig').addEventListener('click', async () => {
+            await fetch('/api/datos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    titulo: document.getElementById('titulo').value,
+                    subtitulo: document.getElementById('subtitulo').value,
+                    firma: document.getElementById('firma').value
+                })
+            });
+            mostrarMensaje('Configuración guardada');
+        });
+
+        document.getElementById('agregarCategoria').addEventListener('click', async () => {
+            const nueva = document.getElementById('nuevaCategoria').value.trim();
+            if (!nueva) return;
+            const nuevas = [...datos.categorias, nueva];
+            await fetch('/api/datos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ categorias: nuevas })
+            });
+            document.getElementById('nuevaCategoria').value = '';
+            cargarDatos();
+            mostrarMensaje('Categoría agregada');
+        });
+
+        document.getElementById('subirFotoBtn').addEventListener('click', async () => {
+            const archivo = window.archivoSubir;
+            if (!archivo) { mostrarMensaje('Selecciona o arrastra una foto primero', 'error'); return; }
+            const formData = new FormData();
+            formData.append('foto', archivo);
+            const res = await fetch('/api/subir-foto', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                await fetch('/api/fotos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        titulo: document.getElementById('nuevaFotoTitulo').value || 'Sin título',
+                        categoria: document.getElementById('nuevaFotoCategoria').value,
+                        orientacion: document.getElementById('nuevaFotoOrientacion').value,
+                        archivo: data.archivo
+                    })
+                });
+                document.getElementById('nuevaFotoTitulo').value = '';
+                window.archivoSubir = null;
+                cargarDatos();
+                mostrarMensaje('Foto subida correctamente');
+            } else { mostrarMensaje('Error al subir', 'error'); }
+        });
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#888'; });
+        dropzone.addEventListener('dragleave', () => dropzone.style.borderColor = '#333');
+        dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.style.borderColor = '#333'; const file = e.dataTransfer.files[0]; if (file && file.type.startsWith('image/')) window.archivoSubir = file; else mostrarMensaje('Solo imágenes', 'error'); });
+        fileInput.addEventListener('change', () => { if (fileInput.files[0]) window.archivoSubir = fileInput.files[0]; });
+
+        document.getElementById('guardarCredenciales').addEventListener('click', async () => {
+            const nickname = document.getElementById('nuevoNickname').value.trim();
+            const password = document.getElementById('nuevaPassword').value;
+            if (!nickname && !password) return;
+            await fetch('/api/credenciales', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nickname, password })
+            });
+            mostrarMensaje('Credenciales actualizadas. Vuelve a iniciar sesión.');
+            setTimeout(() => { sessionStorage.clear(); window.location.href = '/login'; }, 2000);
+        });
+
+        document.getElementById('cerrarSesion').addEventListener('click', () => { sessionStorage.clear(); window.location.href = '/login'; });
+        document.getElementById('verGaleriaBtn').addEventListener('click', () => window.open('/', '_blank'));
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+                btn.classList.add('activo');
+                document.getElementById(`tab-${btn.dataset.tab}`).classList.add('activo');
+            });
+        });
+
+        cargarDatos();
+    </script>
+</body>
+</html>

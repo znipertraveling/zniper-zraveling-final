@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zniper Zraveling · Acceso autor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #050505;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .login-container {
+            background: #0a0a0a;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 380px;
+            border: 1px solid #222;
+        }
+        h1 { color: white; font-size: 1.5rem; font-weight: 300; letter-spacing: 2px; margin-bottom: 0.5rem; text-align: center; }
+        .subtitulo { color: #555; font-size: 0.7rem; text-align: center; margin-bottom: 2rem; letter-spacing: 1px; }
+        .grupo { margin-bottom: 1.2rem; }
+        label { display: block; color: #888; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 0.3rem; text-transform: uppercase; }
+        input { width: 100%; background: #111; border: 1px solid #333; padding: 0.8rem; color: white; font-size: 0.9rem; }
+        input:focus { outline: none; border-color: #666; }
+        button { width: 100%; background: white; border: none; padding: 0.8rem; color: black; font-size: 0.8rem; letter-spacing: 2px; cursor: pointer; transition: 0.2s; margin-top: 0.5rem; text-transform: uppercase; }
+        button:hover { background: #ddd; }
+        .error { background: rgba(255,0,0,0.1); border: 1px solid rgba(255,0,0,0.3); color: #ff8888; padding: 0.6rem; font-size: 0.7rem; text-align: center; margin-bottom: 1rem; display: none; }
+        .info { text-align: center; margin-top: 1.5rem; font-size: 0.6rem; color: #444; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Z N I P E R</h1>
+        <div class="subtitulo">acceso al archivo</div>
+        <div id="errorMsg" class="error"></div>
+        <div class="grupo"><label>NICKNAME</label><input type="text" id="nickname" placeholder="zniper" autocomplete="off"></div>
+        <div class="grupo"><label>CONTRASEÑA</label><input type="password" id="password" placeholder="••••••"></div>
+        <button id="loginBtn">INGRESAR</button>
+        <div class="info">solo para el autor</div>
+    </div>
+    <script>
+        const loginBtn = document.getElementById('loginBtn'), nicknameInput = document.getElementById('nickname'), passwordInput = document.getElementById('password'), errorMsg = document.getElementById('errorMsg');
+        async function login() {
+            const nickname = nicknameInput.value.trim(), password = passwordInput.value;
+            if (!nickname || !password) { mostrarError('Completa ambos campos'); return; }
+            loginBtn.disabled = true; loginBtn.textContent = 'VERIFICANDO...';
+            try {
+                const response = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname, password }) });
+                const data = await response.json();
+                if (data.success) { sessionStorage.setItem('zniper_auth', 'true'); window.location.href = '/admin'; } 
+                else { mostrarError(data.message || 'Acceso denegado'); }
+            } catch (error) { mostrarError('Error de conexión'); } 
+            finally { loginBtn.disabled = false; loginBtn.textContent = 'INGRESAR'; }
+        }
+        function mostrarError(msg) { errorMsg.textContent = msg; errorMsg.style.display = 'block'; setTimeout(() => errorMsg.style.display = 'none', 3000); }
+        loginBtn.addEventListener('click', login);
+        nicknameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+        passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+    </script>
+</body>
+</html>

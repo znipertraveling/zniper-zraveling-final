@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zniper Zraveling · Galería de autor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+            background: #050505;
+            color: #e0e0e0;
+            padding: 2rem 1.5rem;
+            font-weight: 300;
+        }
+        .header { max-width: 1100px; margin: 0 auto 3rem auto; text-align: center; }
+        .header h1 { font-size: 3rem; font-weight: 300; letter-spacing: -0.02em; color: #ffffff; margin-bottom: 0.5rem; }
+        .header p { font-size: 0.8rem; color: #777; letter-spacing: 2px; text-transform: uppercase; }
+        .firma { margin-top: 0.8rem; font-size: 0.7rem; color: #444; font-style: italic; }
+        .filtros { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem; max-width: 800px; margin: 0 auto 2.5rem auto; }
+        .filtro-btn { background: transparent; border: none; padding: 0.4rem 1rem; font-size: 0.7rem; font-weight: 300; color: #6a6a6a; cursor: pointer; transition: 0.2s; letter-spacing: 1px; text-transform: uppercase; }
+        .filtro-btn:hover { color: white; background: #151515; }
+        .filtro-btn.activo { color: white; background: #1a1a1a; }
+        .galeria { max-width: 1200px; margin: 0 auto; column-count: 3; column-gap: 1.2rem; }
+        .foto-item { break-inside: avoid; margin-bottom: 1.2rem; cursor: pointer; transition: opacity 0.2s; }
+        .foto-item:hover { opacity: 0.92; }
+        .foto-img { width: 100%; height: auto; display: block; }
+        .foto-info { padding: 0.5rem 0.2rem 0.8rem 0.2rem; }
+        .foto-titulo { font-size: 0.75rem; color: #bbb; letter-spacing: 0.3px; }
+        .foto-proyecto { font-size: 0.6rem; color: #555; margin-top: 0.2rem; text-transform: uppercase; }
+        .footer { text-align: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #151515; color: #3a3a3a; font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.98); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
+        .modal-img { max-width: 85%; max-height: 80%; object-fit: contain; }
+        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(20,20,20,0.6); color: #aaa; border: none; font-size: 2rem; padding: 0.5rem 1rem; cursor: pointer; transition: 0.2s; }
+        .nav-btn:hover { color: white; }
+        .prev { left: 15px; }
+        .next { right: 15px; }
+        .modal-cerrar { position: absolute; top: 20px; right: 30px; font-size: 1.8rem; color: #777; cursor: pointer; }
+        .modal-cerrar:hover { color: white; }
+        @media (max-width: 800px) { .galeria { column-count: 2; } body { padding: 1rem; } .header h1 { font-size: 2rem; } }
+        @media (max-width: 500px) { .galeria { column-count: 1; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 id="titulo">Zniper Zraveling</h1>
+        <p id="subtitulo">cargando...</p>
+        <div class="firma" id="firma"></div>
+    </div>
+    <div class="filtros" id="filtros"></div>
+    <div class="galeria" id="galeria"></div>
+    <div class="footer"><span id="footerText"></span></div>
+    <div id="modal" class="modal">
+        <span class="modal-cerrar">✕</span>
+        <button class="nav-btn prev" id="prevBtn">‹</button>
+        <img class="modal-img" id="modal-img" src="">
+        <button class="nav-btn next" id="nextBtn">›</button>
+    </div>
+    <script>
+        let fotos = [], categorias = [], proyectoActivo = "todos", fotosActuales = [], indiceModalActual = 0;
+        async function cargarTodo() {
+            const res = await fetch('/api/datos');
+            const data = await res.json();
+            document.getElementById('titulo').textContent = data.titulo;
+            document.getElementById('subtitulo').textContent = data.subtitulo;
+            document.getElementById('firma').textContent = data.firma;
+            document.getElementById('footerText').textContent = `${data.titulo} · autor · 2026`;
+            fotos = data.fotos || [];
+            categorias = data.categorias || [];
+            renderFiltros();
+            renderGaleria();
+        }
+        function renderFiltros() {
+            const container = document.getElementById('filtros');
+            let html = `<button class="filtro-btn activo" data-proyecto="todos">TODAS</button>`;
+            categorias.forEach(cat => { html += `<button class="filtro-btn" data-proyecto="${cat}">${cat.toUpperCase()}</button>`; });
+            container.innerHTML = html;
+            document.querySelectorAll('.filtro-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+                    btn.classList.add('activo');
+                    proyectoActivo = btn.getAttribute('data-proyecto');
+                    renderGaleria();
+                });
+            });
+        }
+        function renderGaleria() {
+            fotosActuales = proyectoActivo === "todos" ? [...fotos] : fotos.filter(f => f.categoria === proyectoActivo);
+            const galeriaDiv = document.getElementById('galeria');
+            if (fotosActuales.length === 0) { galeriaDiv.innerHTML = '<p style="text-align:center; color:#555;">sin imágenes en esta serie</p>'; return; }
+            let html = '';
+            for (let i = 0; i < fotosActuales.length; i++) {
+                const f = fotosActuales[i];
+                html += `<div class="foto-item" data-index="${i}"><img class="foto-img" src="${f.archivo}" alt="${f.titulo}" loading="lazy"><div class="foto-info"><div class="foto-titulo">${f.titulo}</div><div class="foto-proyecto">${f.categoria}</div></div></div>`;
+            }
+            galeriaDiv.innerHTML = html;
+            document.querySelectorAll('.foto-item').forEach(item => { item.addEventListener('click', (e) => { const idx = parseInt(item.getAttribute('data-index')); abrirModal(idx); }); });
+        }
+        function abrirModal(index) { if (fotosActuales.length === 0) return; indiceModalActual = index; document.getElementById('modal-img').src = fotosActuales[indiceModalActual].archivo; document.getElementById('modal').style.display = 'flex'; }
+        function configurarModal() {
+            const modal = document.getElementById('modal'), modalImg = document.getElementById('modal-img'), cerrar = document.querySelector('.modal-cerrar'), prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn');
+            prevBtn.addEventListener('click', () => { let nuevo = indiceModalActual - 1; if (nuevo < 0) nuevo = fotosActuales.length - 1; indiceModalActual = nuevo; modalImg.src = fotosActuales[indiceModalActual].archivo; });
+            nextBtn.addEventListener('click', () => { let nuevo = indiceModalActual + 1; if (nuevo >= fotosActuales.length) nuevo = 0; indiceModalActual = nuevo; modalImg.src = fotosActuales[indiceModalActual].archivo; });
+            cerrar.addEventListener('click', () => modal.style.display = 'none');
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+        }
+        cargarTodo();
+        configurarModal();
+    </script>
+</body>
+</html>
