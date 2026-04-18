@@ -28,25 +28,27 @@ def allowed_file(filename):
 # Datos por defecto (estructura completa)
 DATOS_POR_DEFECTO = {
     "titulo": "Zniper Zraveling",
-    "subtitulo": "fotografía de autor · calle como poema · instante como herida",
+    "subtitulo": "fotografía de autor · calle como poema",
     "firma": "— mi ojo, mi sombra, mi ciudad —",
     "categorias": ["Soledades", "Silencios", "Miradas"],
     "fotos": [],
     "proximo_id": 1,
     "blog": [],
     "proximo_blog_id": 1,
+    "series": [],   # series globales (colecciones temáticas)
+    "proximo_serie_id": 1,
     "paginas": [
-        {"id": 1, "titulo": "Sobre mí", "slug": "sobre-mi", "contenido": "Escribe aquí tu biografía...", "visible": True}
+        {"id": 1, "titulo": "Sobre mí", "slug": "sobre-mi", "tipo": "sobremi", "contenido": [], "visible": True}
     ],
     "proximo_pagina_id": 2,
     "comentarios": [],
     "proximo_comentario_id": 1,
-    "moderacion_comentarios": True,
-    "instagram": "https://instagram.com/znipertraveling",
+    "moderacion_comentarios": False,  # automática
+    "redes_sociales": [
+        {"nombre": "Instagram", "url": "https://instagram.com/znipertraveling", "icono": "📷"}
+    ],
     "inicio": {
-        "bienvenida": "Bienvenido a mi mundo visual",
-        "texto": "Soy un fotógrafo de calle obsesionado con el instante decisivo.",
-        "imagen": ""
+        "titulo": "Bienvenido a mi mundo visual"
     }
 }
 
@@ -79,37 +81,25 @@ def guardar_credenciales(credenciales):
 
 def login_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated(*args, **kwargs):
         if not session.get('logged_in'):
             return redirect(url_for('login_page'))
         return f(*args, **kwargs)
-    return decorated_function
+    return decorated
 
 # ========== RUTAS PÚBLICAS ==========
 @app.route('/')
 def index():
     return send_from_directory('static', 'index.html')
 
-@app.route('/blog')
-def blog():
-    return send_from_directory('static', 'blog.html')
-
-@app.route('/blog/<int:id>')
-def articulo(id):
-    return send_from_directory('static', 'articulo.html')
-
-@app.route('/pagina/<slug>')
-def pagina(slug):
-    return send_from_directory('static', 'pagina.html')
-
-@app.route('/login')
-def login_page():
-    return send_from_directory('static', 'login.html')
-
 @app.route('/admin')
 @login_required
 def admin():
     return send_from_directory('static', 'admin.html')
+
+@app.route('/login')
+def login_page():
+    return send_from_directory('static', 'login.html')
 
 @app.route('/static/<path:filename>')
 def static_files(filename):
@@ -144,11 +134,12 @@ def get_datos():
         "categorias": datos["categorias"],
         "fotos": datos["fotos"],
         "blog": datos["blog"],
+        "series": datos["series"],
         "paginas": datos["paginas"],
         "comentarios": datos["comentarios"],
-        "moderacion_comentarios": datos.get("moderacion_comentarios", True),
-        "instagram": datos.get("instagram", "https://instagram.com/znipertraveling"),
-        "inicio": datos.get("inicio", {"bienvenida": "", "texto": "", "imagen": ""})
+        "moderacion_comentarios": datos.get("moderacion_comentarios", False),
+        "redes_sociales": datos.get("redes_sociales", []),
+        "inicio": datos.get("inicio", {"titulo": "Bienvenido"})
     })
 
 @app.route('/api/datos', methods=['POST'])
@@ -156,22 +147,63 @@ def get_datos():
 def update_datos():
     datos = cargar_datos()
     data = request.json
-    for key in ['titulo', 'subtitulo', 'firma', 'categorias', 'moderacion_comentarios', 'instagram']:
+    for key in ['titulo', 'subtitulo', 'firma', 'categorias', 'moderacion_comentarios', 'redes_sociales', 'inicio']:
         if key in data:
             datos[key] = data[key]
-    if 'inicio' in data:
-        datos['inicio'] = data['inicio']
     guardar_datos(datos)
     return jsonify({"success": True})
 
-@app.route('/api/categorias/reordenar', methods=['POST'])
+# ========== CRUD para fotos, blog, series, páginas, comentarios ==========
+# (se incluyen todas las rutas necesarias)
+
+@app.route('/api/fotos', methods=['POST'])
 @login_required
-def reordenar_categorias():
+def add_foto():
     datos = cargar_datos()
-    datos['categorias'] = request.json.get('categorias', [])
+    data = request.json
+    nueva = {
+        "id": datos["proximo_id"],
+        "titulo": data.get('titulo', 'Sin título'),
+        "categoria": data.get('categoria', datos['categorias'][0] if datos['categorias'] else 'General'),
+        "archivo": data.get('archivo'),
+        "orientacion": data.get('orientacion', 'horizontal')
+    }
+    datos["fotos"].append(nueva)
+    datos["proximo_id"] += 1
+    guardar_datos(datos)
+    return jsonify({"success": True, "foto": nueva})
+
+@app.route('/api/fotos/<int:foto_id>', methods=['PUT'])
+@login_required
+def update_foto(foto_id):
+    datos = cargar_datos()
+    data = request.json
+    for foto in datos["fotos"]:
+        if foto["id"] == foto_id:
+            foto.update(data)
+            break
     guardar_datos(datos)
     return jsonify({"success": True})
 
+@app.route('/api/fotos/<int:foto_id>', methods=['DELETE'])
+@login_required
+def delete_foto(foto_id):
+    datos = cargar_datos()
+    datos["fotos"] = [f for f in datos["fotos"] if f["id"] != foto_id]
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/fotos/reordenar', methods=['POST'])
+@login_required
+def reordenar_fotos():
+    datos = cargar_datos()
+    nuevos_ids = request.json.get('ids', [])
+    fotos_dict = {f["id"]: f for f in datos["fotos"]}
+    datos["fotos"] = [fotos_dict[id_] for id_ in nuevos_ids if id_ in fotos_dict]
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+# Blog
 @app.route('/api/blog', methods=['POST'])
 @login_required
 def add_blog():
@@ -209,6 +241,45 @@ def delete_blog(id):
     guardar_datos(datos)
     return jsonify({"success": True})
 
+# Series (globales)
+@app.route('/api/series', methods=['POST'])
+@login_required
+def add_serie():
+    datos = cargar_datos()
+    data = request.json
+    nueva = {
+        "id": datos["proximo_serie_id"],
+        "titulo": data.get('titulo', 'Serie sin título'),
+        "descripcion": data.get('descripcion', ''),
+        "fotos": data.get('fotos', []),   # lista de objetos {archivo, titulo}
+        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    datos["series"].append(nueva)
+    datos["proximo_serie_id"] += 1
+    guardar_datos(datos)
+    return jsonify({"success": True, "serie": nueva})
+
+@app.route('/api/series/<int:id>', methods=['PUT'])
+@login_required
+def update_serie(id):
+    datos = cargar_datos()
+    data = request.json
+    for serie in datos["series"]:
+        if serie["id"] == id:
+            serie.update(data)
+            break
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/series/<int:id>', methods=['DELETE'])
+@login_required
+def delete_serie(id):
+    datos = cargar_datos()
+    datos["series"] = [s for s in datos["series"] if s["id"] != id]
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+# Páginas (con tipo)
 @app.route('/api/paginas', methods=['POST'])
 @login_required
 def add_pagina():
@@ -219,7 +290,9 @@ def add_pagina():
         "id": datos["proximo_pagina_id"],
         "titulo": data.get('titulo', 'Nueva página'),
         "slug": slug,
-        "contenido": data.get('contenido', ''),
+        "tipo": data.get('tipo', 'normal'),  # normal, sobremi, galeria, serie, blog
+        "contenido": data.get('contenido', [] if data.get('tipo')=='sobremi' else ''),
+        "parametros": data.get('parametros', {}),  # para galeria: categoria, para serie: id_serie, etc.
         "visible": data.get('visible', True)
     }
     datos["paginas"].append(nueva)
@@ -249,36 +322,26 @@ def delete_pagina(id):
     guardar_datos(datos)
     return jsonify({"success": True})
 
+# Comentarios (para blog y series)
 @app.route('/api/comentarios', methods=['POST'])
 def add_comentario():
     datos = cargar_datos()
     data = request.json
     nuevo = {
         "id": datos["proximo_comentario_id"],
-        "tipo": data.get('tipo'),
+        "tipo": data.get('tipo'),  # 'blog' o 'serie'
         "entidad_id": data.get('entidad_id'),
         "nickname": data.get('nickname', 'Anónimo'),
         "calificacion": data.get('calificacion', 0),
         "texto": data.get('texto', ''),
         "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "aprobado": datos.get("moderacion_comentarios", True),
+        "aprobado": not datos.get("moderacion_comentarios", False),  # False = automático
         "respuestas": []
     }
     datos["comentarios"].append(nuevo)
     datos["proximo_comentario_id"] += 1
     guardar_datos(datos)
     return jsonify({"success": True, "comentario": nuevo})
-
-@app.route('/api/comentarios/<int:id>/aprobar', methods=['POST'])
-@login_required
-def aprobar_comentario(id):
-    datos = cargar_datos()
-    for com in datos["comentarios"]:
-        if com["id"] == id:
-            com["aprobado"] = True
-            break
-    guardar_datos(datos)
-    return jsonify({"success": True})
 
 @app.route('/api/comentarios/<int:id>', methods=['DELETE'])
 @login_required
@@ -305,58 +368,7 @@ def responder_comentario(id):
     guardar_datos(datos)
     return jsonify({"success": True})
 
-@app.route('/api/fotos', methods=['POST'])
-@login_required
-def add_foto():
-    datos = cargar_datos()
-    data = request.json
-    nueva_foto = {
-        "id": datos["proximo_id"],
-        "titulo": data.get('titulo', 'Sin título'),
-        "categoria": data.get('categoria', datos['categorias'][0] if datos['categorias'] else 'General'),
-        "archivo": data.get('archivo'),
-        "orientacion": data.get('orientacion', 'horizontal')
-    }
-    datos["fotos"].append(nueva_foto)
-    datos["proximo_id"] += 1
-    guardar_datos(datos)
-    return jsonify({"success": True, "foto": nueva_foto})
-
-@app.route('/api/fotos/<int:foto_id>', methods=['PUT'])
-@login_required
-def update_foto(foto_id):
-    datos = cargar_datos()
-    data = request.json
-    for foto in datos["fotos"]:
-        if foto["id"] == foto_id:
-            if 'titulo' in data:
-                foto['titulo'] = data['titulo']
-            if 'categoria' in data:
-                foto['categoria'] = data['categoria']
-            if 'orientacion' in data:
-                foto['orientacion'] = data['orientacion']
-            break
-    guardar_datos(datos)
-    return jsonify({"success": True})
-
-@app.route('/api/fotos/<int:foto_id>', methods=['DELETE'])
-@login_required
-def delete_foto(foto_id):
-    datos = cargar_datos()
-    datos["fotos"] = [f for f in datos["fotos"] if f["id"] != foto_id]
-    guardar_datos(datos)
-    return jsonify({"success": True})
-
-@app.route('/api/fotos/reordenar', methods=['POST'])
-@login_required
-def reordenar_fotos():
-    datos = cargar_datos()
-    nuevos_ids = request.json.get('ids', [])
-    fotos_dict = {f["id"]: f for f in datos["fotos"]}
-    datos["fotos"] = [fotos_dict[id_] for id_ in nuevos_ids if id_ in fotos_dict]
-    guardar_datos(datos)
-    return jsonify({"success": True})
-
+# Subida de imágenes
 @app.route('/api/subir-foto', methods=['POST'])
 @login_required
 def subir_foto():
