@@ -2,102 +2,180 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Zniper Admin · Funcional</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zniper Admin · Panel de control</title>
     <style>
-        :root { --bg: #050505; --accent: #fff; --text: #ccc; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); display: flex; margin: 0; }
-        .sidebar { width: 220px; border-right: 1px solid #222; height: 100vh; padding: 20px; }
-        .main { flex: 1; padding: 40px; }
-        .tab { display: none; }
-        .tab.active { display: block; }
-        .nav-btn { display: block; width: 100%; padding: 10px; background: none; color: #666; border: none; text-align: left; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; }
-        .nav-btn.active { color: #fff; }
-        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; background: #111; border: 1px solid #333; color: #fff; }
-        button.save { background: #fff; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #050505; color: #e0e0e0; padding: 1rem; }
+        .header { max-width: 1400px; margin: 0 auto 1rem auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid #222; padding-bottom: 0.5rem; }
+        .header h1 { font-size: 1.2rem; font-weight: 300; }
+        .btn-header { background: transparent; border: 1px solid #333; padding: 0.3rem 0.8rem; color: #aaa; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; }
+        .btn-header:hover { background: #1a1a1a; color: white; }
+        .contenedor { max-width: 1400px; margin: 0 auto; }
+        .tabs { display: flex; gap: 0.3rem; border-bottom: 1px solid #222; margin-bottom: 1rem; flex-wrap: wrap; }
+        .tab-btn { background: transparent; border: none; padding: 0.5rem 1rem; color: #777; cursor: pointer; font-size: 0.8rem; }
+        .tab-btn:hover { color: white; }
+        .tab-btn.activo { color: white; border-bottom: 2px solid white; }
+        .tab-panel { display: none; }
+        .tab-panel.activo { display: block; }
+        .seccion { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 1rem; margin-bottom: 1rem; }
+        .seccion h3 { font-weight: 300; margin-bottom: 0.8rem; font-size: 0.9rem; }
+        .campo { margin-bottom: 0.8rem; }
+        .campo label { display: block; font-size: 0.7rem; color: #888; margin-bottom: 0.2rem; text-transform: uppercase; }
+        .campo input, .campo textarea, .campo select { width: 100%; background: #111; border: 1px solid #333; padding: 0.5rem; color: white; font-size: 0.8rem; }
+        .guardar-btn { background: #222; border: none; padding: 0.4rem 0.8rem; color: white; cursor: pointer; font-size: 0.7rem; }
+        .guardar-btn:hover { background: #333; }
+        .lista-items { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+        .item-card { background: #111; border: 1px solid #222; padding: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+        .item-card .info { flex: 1; }
+        .item-card .acciones { display: flex; gap: 0.3rem; }
+        button { background: #222; border: 1px solid #444; color: #aaa; padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.7rem; }
+        button:hover { background: #333; color: white; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: 0.2s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: 0.2s; border-radius: 50%; }
+        input:checked + .slider { background-color: #4caf50; }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .dropzone { border: 2px dashed #333; padding: 0.8rem; text-align: center; margin-bottom: 0.8rem; cursor: pointer; background: #0a0a0a; }
+        .fotos-series { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+        .foto-serie-item { background: #111; border: 1px solid #333; padding: 0.3rem; width: 80px; text-align: center; }
+        .foto-serie-item img { width: 100%; height: 60px; object-fit: cover; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #1a1a1a; border-left: 4px solid #4caf50; padding: 0.8rem 1.2rem; color: white; z-index: 2000; font-size: 0.8rem; border-radius: 4px; animation: fadein 0.3s; }
+        .toast.error { border-left-color: #f44336; }
+        @keyframes fadein { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @media (max-width: 700px) { .item-card { flex-direction: column; align-items: stretch; } }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h3>ZNIPER</h3>
-        <button class="nav-btn active" onclick="showTab('t-galeria')">Galería</button>
-        <button class="nav-btn" onclick="showTab('t-blog')">Blog</button>
-        <button class="nav-btn" onclick="showTab('t-redes')">Redes</button>
-    </div>
-    <div class="main">
-        <div id="t-galeria" class="tab active">
-            <h2>Subir a Galería</h2>
-            <input type="file" id="f-file">
-            <input type="text" id="f-tema" placeholder="Tema/Categoría">
-            <button class="save" onclick="subirFoto()">Subir Imagen</button>
-            <div id="lista-fotos" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:20px;"></div>
-        </div>
-        
-        <div id="t-blog" class="tab">
-            <h2>Nuevo Artículo</h2>
-            <input type="text" id="b-titulo" placeholder="Título">
-            <textarea id="b-texto" placeholder="Contenido..."></textarea>
-            <button class="save" onclick="guardarBlog()">Publicar</button>
-        </div>
+<div class="header"><h1>ZNIPER ZRAVELING · ADMIN</h1><div><button class="btn-header" id="verGaleriaBtn">VER GALERÍA</button><button class="btn-header" id="cerrarSesion">CERRAR SESIÓN</button></div></div>
+<div class="contenedor">
+<div class="tabs">
+    <button class="tab-btn activo" data-tab="config">📝 CONFIG</button>
+    <button class="tab-btn" data-tab="inicio">🏠 INICIO</button>
+    <button class="tab-btn" data-tab="categorias">🏷️ CATS</button>
+    <button class="tab-btn" data-tab="fotos">📸 FOTOS</button>
+    <button class="tab-btn" data-tab="blog">📰 BLOG</button>
+    <button class="tab-btn" data-tab="series">🎬 SERIES</button>
+    <button class="tab-btn" data-tab="paginas">📄 PÁGINAS</button>
+    <button class="tab-btn" data-tab="comentarios">💬 COMENTARIOS</button>
+    <button class="tab-btn" data-tab="redes">🔗 REDES</button>
+    <button class="tab-btn" data-tab="credenciales">🔐 CREDENCIALES</button>
+</div>
 
-        <div id="t-redes" class="tab">
-            <h2>Redes</h2>
-            <div id="lista-redes"></div>
-            <input type="text" id="r-nombre" placeholder="Red">
-            <input type="text" id="r-url" placeholder="URL">
-            <button class="save" onclick="agregarRed()">Guardar Red</button>
-        </div>
-    </div>
+<div id="tab-config" class="tab-panel activo"><div class="seccion"><h3>Configuración general</h3><div class="campo"><label>Título sitio</label><input type="text" id="titulo"></div><div class="campo"><label>Subtítulo</label><input type="text" id="subtitulo"></div><div class="campo"><label>Firma</label><input type="text" id="firma"></div><div class="campo"><label>Moderación comentarios (automática = sin aprobación)</label><label class="switch"><input type="checkbox" id="moderacionSwitch"><span class="slider"></span></label><span id="moderacionLabel" style="margin-left:10px;"></span></div><button class="guardar-btn" id="guardarConfig">GUARDAR</button></div></div>
 
-    <script>
-        let datos = { fotos: [], blog: [], redes: [], config: {} };
+<div id="tab-inicio" class="tab-panel"><div class="seccion"><h3>Página de inicio</h3><div class="campo"><label>Título principal</label><input type="text" id="inicioTitulo"></div><button class="guardar-btn" id="guardarInicio">GUARDAR</button></div></div>
 
-        async function cargar() {
-            const r = await fetch('/api/datos');
-            datos = await r.json();
-            renderFotos();
-            renderRedes();
-        }
+<div id="tab-categorias" class="tab-panel"><div class="seccion"><h3>Categorías</h3><div id="categorias-lista" class="lista-items"></div><div style="display:flex; gap:0.5rem; margin-top:1rem;"><input type="text" id="nuevaCategoria" placeholder="Nueva categoría" style="flex:1;"><button id="agregarCategoria">+ AGREGAR</button></div></div></div>
 
-        async function sincronizar() {
-            await fetch('/api/save', { // Asegúrate de que en app.py la ruta sea /api/save o /api/update_all
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(datos)
-            });
-            alert("Sincronizado con el servidor");
-            cargar();
-        }
+<div id="tab-fotos" class="tab-panel"><div class="seccion"><h3>Subir foto</h3><div id="dropzone" class="dropzone">📸 Arrastra o haz clic<input type="file" id="fileInput" accept="image/*" style="display:none;"></div><div class="campo"><label>Título</label><input type="text" id="nuevaFotoTitulo"></div><div class="campo"><label>Categoría</label><select id="nuevaFotoCategoria"></select></div><div class="campo"><label>Orientación</label><select id="nuevaFotoOrientacion"><option value="vertical">Vertical</option><option value="horizontal">Horizontal</option></select></div><button class="guardar-btn" id="subirFotoBtn">SUBIR</button></div><div class="seccion"><h3>Todas las fotos (arrastra para reordenar)</h3><div id="fotos-lista" class="lista-items"></div></div></div>
 
-        async function subirFoto() {
-            const file = document.getElementById('f-file').files[0];
-            const formData = new FormData();
-            formData.append('file', file);
-            const r = await fetch('/api/upload', { method: 'POST', body: formData });
-            const res = await r.json();
-            datos.fotos.push({ url: res.url, tema: document.getElementById('f-tema').value });
-            sincronizar();
-        }
+<div id="tab-blog" class="tab-panel"><div class="seccion"><h3>Crear/Editar artículo</h3><div class="campo"><label>Título</label><input type="text" id="blogTitulo"></div><div class="campo"><label>Texto</label><textarea id="blogTexto" rows="4"></textarea></div><div class="campo"><label>Imagen destacada</label><div id="blogDropzone" class="dropzone">📸 Arrastra o haz clic<input type="file" id="blogFileInput" accept="image/*" style="display:none;"></div><input type="hidden" id="blogImagenUrl"><button class="guardar-btn" id="crearBlogBtn">CREAR ARTÍCULO</button></div><div class="seccion"><h3>Artículos existentes</h3><div id="blog-lista" class="lista-items"></div></div></div>
 
-        function agregarRed() {
-            if(!datos.redes) datos.redes = [];
-            datos.redes.push({ nombre: document.getElementById('r-nombre').value, url: document.getElementById('r-url').value });
-            sincronizar();
-        }
+<div id="tab-series" class="tab-panel"><div class="seccion"><h3>Crear/Editar serie</h3><div class="campo"><label>Título</label><input type="text" id="serieTitulo"></div><div class="campo"><label>Descripción</label><textarea id="serieDescripcion" rows="3"></textarea></div><div class="campo"><label>Fotos de la serie</label><div id="serieDropzone" class="dropzone">📸 Arrastra fotos aquí (se agregarán a la serie)<input type="file" id="serieFileInput" accept="image/*" multiple style="display:none;"></div><div id="serieFotosList" class="fotos-series"></div><button class="guardar-btn" id="guardarSerieBtn">GUARDAR SERIE</button></div><div class="seccion"><h3>Series existentes</h3><div id="series-lista" class="lista-items"></div></div></div>
 
-        function showTab(id) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
+<div id="tab-paginas" class="tab-panel"><div class="seccion"><h3>Crear nueva página</h3><div class="campo"><label>Título</label><input type="text" id="paginaTitulo"></div><div class="campo"><label>Tipo</label><select id="paginaTipo"><option value="normal">Normal (texto)</option><option value="sobremi">Sobre mí (bloques)</option><option value="galeria">Galería (por categoría)</option><option value="serie">Serie (colección)</option><option value="blog">Blog (lista)</option></select></div><div id="paginaParametros" style="display:none;"></div><div class="campo"><label>Visible</label><input type="checkbox" id="paginaVisible" checked></div><button class="guardar-btn" id="crearPaginaBtn">CREAR PÁGINA</button></div><div class="seccion"><h3>Páginas existentes</h3><div id="paginas-lista" class="lista-items"></div></div></div>
 
-        function renderFotos() {
-            document.getElementById('lista-fotos').innerHTML = datos.fotos.map(f => `<img src="${f.url}" style="width:100%">`).join('');
-        }
+<div id="tab-comentarios" class="tab-panel"><div class="seccion"><h3>Comentarios</h3><div id="comentarios-lista" class="lista-items"></div></div></div>
 
-        function renderRedes() {
-            document.getElementById('lista-redes').innerHTML = (datos.redes || []).map(r => `<div>${r.nombre}</div>`).join('');
-        }
+<div id="tab-redes" class="tab-panel"><div class="seccion"><h3>Redes sociales</h3><div id="redes-lista" class="lista-items"></div><div style="margin-top:1rem; display:flex; gap:0.5rem;"><input type="text" id="nuevaRedNombre" placeholder="Nombre (ej. Instagram)" style="flex:2;"><input type="text" id="nuevaRedUrl" placeholder="URL" style="flex:3;"><input type="text" id="nuevaRedIcono" placeholder="Icono (ej. 📷)" style="flex:1;"><button id="agregarRedBtn">+</button></div></div></div>
 
-        cargar();
-    </script>
+<div id="tab-credenciales" class="tab-panel"><div class="seccion"><h3>Cambiar credenciales</h3><div class="campo"><label>Nickname</label><input type="text" id="nuevoNickname"></div><div class="campo"><label>Contraseña</label><input type="password" id="nuevaPassword"></div><button class="guardar-btn" id="guardarCredenciales">CAMBIAR</button></div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+if(!sessionStorage.getItem('zniper_auth')) window.location.href='/login';
+let datos={}, sortableCats, sortableFotos, sortableSeriesList, sortablePaginas, sortableRedes;
+let serieEditandoId=null, serieFotosActuales=[];
+function mostrarToast(m, tipo='exito'){ let t=document.createElement('div'); t.className='toast'+(tipo==='error'?' error':''); t.innerText=m; document.body.appendChild(t); setTimeout(()=>t.remove(),3000);}
+async function cargarTodo(){
+    const r=await fetch('/api/datos'); datos=await r.json();
+    document.getElementById('titulo').value=datos.titulo||''; document.getElementById('subtitulo').value=datos.subtitulo||''; document.getElementById('firma').value=datos.firma||'';
+    const sw=document.getElementById('moderacionSwitch'); sw.checked=!datos.moderacion_comentarios; document.getElementById('moderacionLabel').innerText=sw.checked?'Automática (sin aprobar)':'Manual (requiere aprobación)';
+    document.getElementById('inicioTitulo').value=datos.inicio?.titulo||'Bienvenido';
+    renderCategorias(); renderFotos(); renderBlog(); renderSeriesList(); renderPaginas(); renderComentarios(); renderRedes(); llenarSelectCategorias();
+}
+function renderCategorias(){
+    const cont=document.getElementById('categorias-lista'); if(!datos.categorias) return;
+    cont.innerHTML=datos.categorias.map((c,i)=>`<div class="item-card"><span class="drag-handle" style="cursor:grab;">⋮⋮</span><input type="text" value="${c}" data-idx="${i}" class="cat-nombre" style="flex:1;"><button class="eliminar-cat" data-idx="${i}">✕</button></div>`).join('');
+    if(sortableCats) sortableCats.destroy();
+    sortableCats=new Sortable(cont,{handle:'.drag-handle',onEnd:async()=>{ const nuevos=Array.from(cont.querySelectorAll('.cat-nombre')).map(i=>i.value); await fetch('/api/datos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({categorias:nuevos})}); cargarTodo(); mostrarToast('Orden guardado'); }});
+    document.querySelectorAll('.eliminar-cat').forEach(b=>b.onclick=async()=>{ const idx=parseInt(b.dataset.idx); const nuevos=datos.categorias.filter((_,i)=>i!==idx); await fetch('/api/datos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({categorias:nuevos})}); cargarTodo(); mostrarToast('Categoría eliminada'); });
+    document.querySelectorAll('.cat-nombre').forEach(i=>i.onchange=async()=>{ const idx=parseInt(i.dataset.idx); const nuevos=[...datos.categorias]; nuevos[idx]=i.value; await fetch('/api/datos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({categorias:nuevos})}); cargarTodo(); mostrarToast('Categoría actualizada'); });
+}
+function renderFotos(){
+    const cont=document.getElementById('fotos-lista'); if(!datos.fotos) return;
+    cont.innerHTML=datos.fotos.map((f,i)=>`<div class="item-card" data-id="${f.id}"><span class="drag-handle" style="cursor:grab;">⋮⋮</span><img src="${f.archivo}" style="width:50px;height:50px;object-fit:cover;"><div style="flex:1;"><input type="text" value="${f.titulo}" class="foto-titulo" data-id="${f.id}" style="width:100%;"><select class="foto-categoria" data-id="${f.id}">${datos.categorias.map(c=>`<option value="${c}" ${f.categoria===c?'selected':''}>${c}</option>`).join('')}</select><select class="foto-orientacion" data-id="${f.id}"><option value="vertical" ${f.orientacion==='vertical'?'selected':''}>Vertical</option><option value="horizontal" ${f.orientacion==='horizontal'?'selected':''}>Horizontal</option></select></div><button class="eliminar-foto" data-id="${f.id}">✕</button></div>`).join('');
+    if(sortableFotos) sortableFotos.destroy();
+    sortableFotos=new Sortable(cont,{handle:'.drag-handle',onEnd:async()=>{ const ids=Array.from(cont.querySelectorAll('.item-card')).map(el=>parseInt(el.dataset.id)); await fetch('/api/fotos/reordenar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})}); mostrarToast('Orden guardado'); }});
+    document.querySelectorAll('.eliminar-foto').forEach(b=>b.onclick=async()=>{ if(confirm('¿Eliminar?')){ await fetch(`/api/fotos/${b.dataset.id}`,{method:'DELETE'}); cargarTodo(); mostrarToast('Foto eliminada'); }});
+    document.querySelectorAll('.foto-titulo').forEach(i=>i.onchange=async()=>{ await fetch(`/api/fotos/${i.dataset.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({titulo:i.value})}); mostrarToast('Título actualizado'); });
+    document.querySelectorAll('.foto-categoria').forEach(s=>s.onchange=async()=>{ await fetch(`/api/fotos/${s.dataset.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({categoria:s.value})}); mostrarToast('Categoría actualizada'); });
+    document.querySelectorAll('.foto-orientacion').forEach(s=>s.onchange=async()=>{ await fetch(`/api/fotos/${s.dataset.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({orientacion:s.value})}); mostrarToast('Orientación actualizada'); });
+}
+function renderBlog(){
+    const cont=document.getElementById('blog-lista'); if(!datos.blog) return;
+    cont.innerHTML=datos.blog.map(a=>`<div class="item-card"><div class="info"><strong>${a.titulo}</strong><br><small>${a.fecha}</small>${a.imagen?`<br><img src="${a.imagen}" style="max-width:100px;">`:''}</div><div class="acciones"><button class="editar-blog" data-id="${a.id}">✏️</button><button class="eliminar-blog" data-id="${a.id}">🗑️</button></div></div>`).join('');
+    document.querySelectorAll('.editar-blog').forEach(b=>b.onclick=()=>{ const a=datos.blog.find(x=>x.id==b.dataset.id); document.getElementById('blogTitulo').value=a.titulo; document.getElementById('blogTexto').value=a.texto; document.getElementById('blogImagenUrl').value=a.imagen||''; document.getElementById('crearBlogBtn').innerText='ACTUALIZAR'; window.editandoBlogId=a.id; });
+    document.querySelectorAll('.eliminar-blog').forEach(b=>b.onclick=async()=>{ if(confirm('¿Eliminar artículo?')){ await fetch(`/api/blog/${b.dataset.id}`,{method:'DELETE'}); cargarTodo(); mostrarToast('Artículo eliminado'); }});
+}
+function renderSeriesList(){
+    const cont=document.getElementById('series-lista'); if(!datos.series) return;
+    cont.innerHTML=datos.series.map(s=>`<div class="item-card" data-id="${s.id}"><div class="info"><strong>${s.titulo}</strong><br><small>${s.fecha}</small><br>${s.fotos.length} fotos</div><div class="acciones"><button class="editar-serie" data-id="${s.id}">✏️</button><button class="eliminar-serie" data-id="${s.id}">🗑️</button></div></div>`).join('');
+    document.querySelectorAll('.editar-serie').forEach(b=>b.onclick=()=>{ const s=datos.series.find(x=>x.id==b.dataset.id); document.getElementById('serieTitulo').value=s.titulo; document.getElementById('serieDescripcion').value=s.descripcion; serieFotosActuales=s.fotos.slice(); renderSerieFotosList(); serieEditandoId=s.id; document.getElementById('guardarSerieBtn').innerText='ACTUALIZAR SERIE'; });
+    document.querySelectorAll('.eliminar-serie').forEach(b=>b.onclick=async()=>{ if(confirm('¿Eliminar serie?')){ await fetch(`/api/series/${b.dataset.id}`,{method:'DELETE'}); cargarTodo(); mostrarToast('Serie eliminada'); }});
+}
+function renderSerieFotosList(){
+    const cont=document.getElementById('serieFotosList');
+    if(!serieFotosActuales.length){ cont.innerHTML='<p>No hay fotos en esta serie. Arrastra imágenes para agregar.</p>'; return; }
+    cont.innerHTML=serieFotosActuales.map((f,idx)=>`<div class="foto-serie-item"><img src="${f.archivo}"><button class="quitar-foto-serie" data-idx="${idx}">✕</button></div>`).join('');
+    document.querySelectorAll('.quitar-foto-serie').forEach(btn=>btn.onclick=()=>{ const idx=parseInt(btn.dataset.idx); serieFotosActuales.splice(idx,1); renderSerieFotosList(); });
+}
+let serieArchivosSubir=[];
+const serieDrop=document.getElementById('serieDropzone'), serieFile=document.getElementById('serieFileInput');
+serieDrop.onclick=()=>serieFile.click(); serieDrop.ondragover=e=>{e.preventDefault(); serieDrop.style.borderColor='#888';}; serieDrop.ondragleave=()=>serieDrop.style.borderColor='#333'; serieDrop.ondrop=async(e)=>{ e.preventDefault(); serieDrop.style.borderColor='#333'; const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')); for(let file of files){ const fd=new FormData(); fd.append('foto',file); const r=await fetch('/api/subir-foto',{method:'POST',body:fd}); const data=await r.json(); if(data.success){ serieFotosActuales.push({archivo:data.archivo, titulo:file.name}); } else mostrarToast('Error subir imagen','error'); } renderSerieFotosList(); };
+serieFile.onchange=async()=>{ const files=Array.from(serieFile.files); for(let file of files){ const fd=new FormData(); fd.append('foto',file); const r=await fetch('/api/subir-foto',{method:'POST',body:fd}); const data=await r.json(); if(data.success){ serieFotosActuales.push({archivo:data.archivo, titulo:file.name}); } else mostrarToast('Error subir imagen','error'); } renderSerieFotosList(); serieFile.value=''; };
+document.getElementById('guardarSerieBtn').onclick=async()=>{ const titulo=document.getElementById('serieTitulo').value.trim(); if(!titulo){mostrarToast('Escribe un título','error'); return;} const metodo=serieEditandoId?'PUT':'POST'; const url=serieEditandoId?`/api/series/${serieEditandoId}`:'/api/series'; const body={titulo,descripcion:document.getElementById('serieDescripcion').value,fotos:serieFotosActuales}; await fetch(url,{method:metodo,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); document.getElementById('serieTitulo').value=''; document.getElementById('serieDescripcion').value=''; serieFotosActuales=[]; renderSerieFotosList(); document.getElementById('guardarSerieBtn').innerText='GUARDAR SERIE'; serieEditandoId=null; cargarTodo(); mostrarToast('Serie guardada');};
+function renderPaginas(){
+    const cont=document.getElementById('paginas-lista'); if(!datos.paginas) return;
+    cont.innerHTML=datos.paginas.map(p=>`<div class="item-card"><div class="info"><strong>${p.titulo}</strong> (${p.tipo})<br><small>/${p.slug}</small></div><div class="acciones"><button class="editar-pagina" data-id="${p.id}">✏️</button><button class="eliminar-pagina" data-id="${p.id}">🗑️</button></div></div>`).join('');
+    document.querySelectorAll('.editar-pagina').forEach(b=>b.onclick=()=>{ const p=datos.paginas.find(x=>x.id==b.dataset.id); document.getElementById('paginaTitulo').value=p.titulo; document.getElementById('paginaTipo').value=p.tipo; document.getElementById('paginaVisible').checked=p.visible; document.getElementById('crearPaginaBtn').innerText='ACTUALIZAR'; window.editandoPaginaId=p.id; });
+    document.querySelectorAll('.eliminar-pagina').forEach(b=>b.onclick=async()=>{ if(confirm('¿Eliminar página?')){ await fetch(`/api/paginas/${b.dataset.id}`,{method:'DELETE'}); cargarTodo(); mostrarToast('Página eliminada'); }});
+}
+function renderComentarios(){
+    const cont=document.getElementById('comentarios-lista'); if(!datos.comentarios) return;
+    cont.innerHTML=datos.comentarios.map(c=>`<div class="item-card"><div><strong>${c.nickname}</strong> (${c.calificacion}⭐) - ${c.tipo} #${c.entidad_id}<br>${c.texto}<br><small>${c.fecha}</small></div><div class="acciones"><button class="responder-comentario" data-id="${c.id}">💬 RESPONDER</button><button class="eliminar-comentario" data-id="${c.id}">🗑️</button></div></div>`).join('');
+    document.querySelectorAll('.responder-comentario').forEach(b=>b.onclick=()=>{ const resp=prompt('Escribe tu respuesta:'); if(resp) fetch(`/api/comentarios/${b.dataset.id}/responder`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texto:resp})}).then(()=>{cargarTodo(); mostrarToast('Respuesta enviada');}); });
+    document.querySelectorAll('.eliminar-comentario').forEach(b=>b.onclick=async()=>{ if(confirm('¿Eliminar comentario?')){ await fetch(`/api/comentarios/${b.dataset.id}`,{method:'DELETE'}); cargarTodo(); mostrarToast('Comentario eliminado'); }});
+}
+function renderRedes(){
+    const cont=document.getElementById('redes-lista'); if(!datos.redes_sociales) return;
+    cont.innerHTML=datos.redes_sociales.map((r,i)=>`<div class="item-card"><span class="drag-handle" style="cursor:grab;">⋮⋮</span><input type="text" value="${r.nombre}" data-idx="${i}" class="red-nombre" style="flex:1;"><input type="text" value="${r.url}" data-idx="${i}" class="red-url" style="flex:2;"><input type="text" value="${r.icono}" data-idx="${i}" class="red-icono" style="flex:1;"><button class="eliminar-red" data-idx="${i}">✕</button></div>`).join('');
+    if(sortableRedes) sortableRedes.destroy();
+    sortableRedes=new Sortable(cont,{handle:'.drag-handle',onEnd:async()=>{ const nuevas=[]; cont.querySelectorAll('.item-card').forEach(card=>{ nuevas.push({nombre:card.querySelector('.red-nombre').value, url:card.querySelector('.red-url').value, icono:card.querySelector('.red-icono').value}); }); await fetch('/api/datos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({redes_sociales:nuevas})}); cargarTodo(); mostrarToast('Orden guardado'); }});
+    document.querySelectorAll('.eliminar-red').forEach(b=>b.onclick=async()=>{ const idx=parseInt(b.dataset.idx); const nuevas=datos.redes_sociales.filter((_,i)=>i!==idx); await fetch('/api/datos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({redes_sociales:nuevas})}); cargarTodo(); mostrarToast('Red eliminada'); });
+    document.querySelectorAll('.red-nombre, .red-url, .red-icono').forEach(inp=>inp.onchange=async()=>{ const nuevas=[]; document.querySelectorAll('#redes-lista .item-card').forEach(card=>{ nuevas.push({nombre:card.querySelector('.red-nombre').value, url:card.querySelector('.red-url').value, icono:card.querySelector('.red-icono').value}); }); await fetch('/api/datos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({redes_sociales:nuevas})}); mostrarToast('Red actualizada'); });
+}
+function llenarSelectCategorias(){ const sel=document.getElementById('nuevaFotoCategoria'); if(datos.categorias) sel.innerHTML=datos.categorias.map(c=>`<option value="${c}">${c}</option>`).join('');}
+document.getElementById('guardarConfig').onclick=async()=>{ await fetch('/api/datos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titulo:document.getElementById('titulo').value,subtitulo:document.getElementById('subtitulo').value,firma:document.getElementById('firma').value,moderacion_comentarios:!document.getElementById('moderacionSwitch').checked})}); mostrarToast('Config guardada'); cargarTodo();};
+document.getElementById('guardarInicio').onclick=async()=>{ await fetch('/api/datos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inicio:{titulo:document.getElementById('inicioTitulo').value}})}); mostrarToast('Inicio actualizado'); cargarTodo();};
+document.getElementById('agregarCategoria').onclick=async()=>{ const nueva=document.getElementById('nuevaCategoria').value.trim(); if(nueva){ await fetch('/api/datos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({categorias:[...datos.categorias,nueva]})}); document.getElementById('nuevaCategoria').value=''; cargarTodo(); mostrarToast('Categoría agregada'); }};
+let archivoSubir=null; const drop=document.getElementById('dropzone'), fileInput=document.getElementById('fileInput');
+drop.onclick=()=>fileInput.click(); drop.ondragover=e=>{e.preventDefault(); drop.style.borderColor='#888';}; drop.ondragleave=()=>drop.style.borderColor='#333'; drop.ondrop=e=>{e.preventDefault(); drop.style.borderColor='#333'; const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) archivoSubir=f; else mostrarToast('Solo imágenes','error');};
+fileInput.onchange=()=>{ if(fileInput.files[0]) archivoSubir=fileInput.files[0];};
+document.getElementById('subirFotoBtn').onclick=async()=>{ if(!archivoSubir){mostrarToast('Selecciona una foto','error'); return;} const fd=new FormData(); fd.append('foto',archivoSubir); const r=await fetch('/api/subir-foto',{method:'POST',body:fd}); const data=await r.json(); if(data.success){ await fetch('/api/fotos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titulo:document.getElementById('nuevaFotoTitulo').value||'Sin título',categoria:document.getElementById('nuevaFotoCategoria').value,orientacion:document.getElementById('nuevaFotoOrientacion').value,archivo:data.archivo})}); document.getElementById('nuevaFotoTitulo').value=''; archivoSubir=null; cargarTodo(); mostrarToast('Foto subida'); } else mostrarToast('Error al subir','error');};
+let blogArchivoSubir=null; const blogDrop=document.getElementById('blogDropzone'), blogFile=document.getElementById('blogFileInput');
+blogDrop.onclick=()=>blogFile.click(); blogDrop.ondragover=e=>{e.preventDefault(); blogDrop.style.borderColor='#888';}; blogDrop.ondragleave=()=>blogDrop.style.borderColor='#333'; blogDrop.ondrop=e=>{e.preventDefault(); blogDrop.style.borderColor='#333'; const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) blogArchivoSubir=f; else mostrarToast('Solo imágenes','error');};
+blogFile.onchange=()=>{ if(blogFile.files[0]) blogArchivoSubir=blogFile.files[0];};
+document.getElementById('crearBlogBtn').onclick=async()=>{ const titulo=document.getElementById('blogTitulo').value.trim(); if(!titulo){mostrarToast('Escribe un título','error'); return;} let imagenUrl=document.getElementById('blogImagenUrl').value; if(blogArchivoSubir){ const fd=new FormData(); fd.append('foto',blogArchivoSubir); const r=await fetch('/api/subir-foto',{method:'POST',body:fd}); const data=await r.json(); if(data.success) imagenUrl=data.archivo; else{ mostrarToast('Error subir imagen','error'); return; } } const metodo=window.editandoBlogId?'PUT':'POST'; const url=window.editandoBlogId?`/api/blog/${window.editandoBlogId}`:'/api/blog'; const body={titulo,texto:document.getElementById('blogTexto').value,imagen:imagenUrl}; await fetch(url,{method:metodo,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); document.getElementById('blogTitulo').value=''; document.getElementById('blogTexto').value=''; document.getElementById('blogImagenUrl').value=''; blogArchivoSubir=null; document.getElementById('crearBlogBtn').innerText='CREAR ARTÍCULO'; delete window.editandoBlogId; cargarTodo(); mostrarToast('Artículo guardado');};
+document.getElementById('crearPaginaBtn').onclick=async()=>{ const titulo=document.getElementById('paginaTitulo').value.trim(); if(!titulo){mostrarToast('Escribe un título','error'); return;} const metodo=window.editandoPaginaId?'PUT':'POST'; const url=window.editandoPaginaId?`/api/paginas/${window.editandoPaginaId}`:'/api/paginas'; const body={titulo,contenido:'',tipo:document.getElementById('paginaTipo').value,visible:document.getElementById('paginaVisible').checked}; await fetch(url,{method:metodo,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); document.getElementById('paginaTitulo').value=''; document.getElementById('crearPaginaBtn').innerText='CREAR PÁGINA'; delete window.editandoPaginaId; cargarTodo(); mostrarToast('Página guardada');};
+document.getElementById('agregarRedBtn').onclick=async()=>{ const nombre=document.getElementById('nuevaRedNombre').value.trim(); const url=document.getElementById('nuevaRedUrl').value.trim(); const icono=document.getElementById('nuevaRedIcono').value.trim(); if(!nombre||!url) return; const nuevas=[...datos.redes_sociales,{nombre,url,icono:icono||'🔗'}]; await fetch('/api/datos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({redes_sociales:nuevas})}); document.getElementById('nuevaRedNombre').value=''; document.getElementById('nuevaRedUrl').value=''; document.getElementById('nuevaRedIcono').value=''; cargarTodo(); mostrarToast('Red agregada');};
+document.getElementById('guardarCredenciales').onclick=async()=>{ const nickname=document.getElementById('nuevoNickname').value.trim(); const password=document.getElementById('nuevaPassword').value; if(!nickname&&!password) return; await fetch('/api/credenciales',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname,password})}); mostrarToast('Credenciales actualizadas. Vuelve a iniciar sesión.'); setTimeout(()=>{sessionStorage.clear(); window.location.href='/login';},2000);};
+document.getElementById('cerrarSesion').onclick=()=>{sessionStorage.clear(); window.location.href='/login';};
+document.getElementById('verGaleriaBtn').onclick=()=>window.open('/','_blank');
+document.querySelectorAll('.tab-btn').forEach(btn=>{btn.onclick=()=>{document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('activo')); document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('activo')); btn.classList.add('activo'); document.getElementById(`tab-${btn.dataset.tab}`).classList.add('activo');};});
+cargarTodo();
+</script>
 </body>
 </html>
