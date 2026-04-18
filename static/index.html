@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Zniper Zraveling</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #050505;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        /* --- Menú hamburguesa --- */
+        .menu-btn {
+            position: fixed;
+            top: 20px;
+            right: 25px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            z-index: 1000;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .menu-btn span, .menu-btn span::before, .menu-btn span::after {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: white;
+            position: relative;
+            transition: 0.3s;
+        }
+        .menu-btn span::before, .menu-btn span::after {
+            content: '';
+            position: absolute;
+        }
+        .menu-btn span::before { bottom: 8px; }
+        .menu-btn span::after { top: 8px; }
+        .menu-btn.active span { background: transparent; }
+        .menu-btn.active span::before { transform: rotate(45deg); bottom: 0; }
+        .menu-btn.active span::after { transform: rotate(-45deg); top: 0; }
+        /* Panel del menú */
+        .menu-panel {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 280px;
+            height: 100vh;
+            background: #0a0a0a;
+            border-left: 1px solid #222;
+            z-index: 999;
+            transition: right 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            padding: 80px 20px 20px;
+            backdrop-filter: blur(10px);
+        }
+        .menu-panel.open { right: 0; }
+        .menu-panel a {
+            display: block;
+            color: #ccc;
+            text-decoration: none;
+            padding: 12px 0;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #222;
+            transition: 0.2s;
+        }
+        .menu-panel a:hover { color: white; padding-left: 5px; }
+        /* Contenido principal */
+        .main-content {
+            min-height: 100vh;
+            padding: 80px 20px 60px;
+            transition: opacity 0.3s;
+        }
+        /* Footer con Instagram pequeño */
+        .footer {
+            position: fixed;
+            bottom: 15px;
+            left: 20px;
+            font-size: 0.7rem;
+            color: #555;
+            z-index: 10;
+        }
+        .footer a {
+            color: #e4405f;
+            text-decoration: none;
+            margin-left: 5px;
+        }
+        /* Secciones dinámicas */
+        .section { display: none; animation: fade 0.4s; }
+        .section.active { display: block; }
+        @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+        /* Estilos de galería (masonry) */
+        .galeria-grid {
+            column-count: 3;
+            column-gap: 1.2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .foto-item {
+            break-inside: avoid;
+            margin-bottom: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .foto-item:hover { transform: scale(0.98); }
+        .foto-img { width: 100%; display: block; }
+        /* Modal mejorado */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .modal img { max-width: 90%; max-height: 85%; object-fit: contain; }
+        .modal .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(30,30,30,0.7);
+            color: white;
+            border: none;
+            font-size: 2rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .modal .prev { left: 15px; }
+        .modal .next { right: 15px; }
+        .modal .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #aaa;
+        }
+        @media (max-width: 700px) { .galeria-grid { column-count: 2; } }
+        @media (max-width: 500px) { .galeria-grid { column-count: 1; } }
+        /* Blog y páginas */
+        .blog-list, .pagina-contenido { max-width: 800px; margin: 0 auto; }
+        .articulo-card {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .articulo-card h2 a { color: white; text-decoration: none; }
+        .fecha { font-size: 0.7rem; color: #666; margin: 0.5rem 0; }
+        /* Inicio */
+        .inicio-contenido {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .hero-img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="menu-btn" id="menuBtn">
+    <span></span>
+</div>
+<div class="menu-panel" id="menuPanel">
+    <a href="#" data-section="inicio">INICIO</a>
+    <a href="#" data-section="galeria">GALERÍA</a>
+    <a href="#" data-section="blog">BLOG</a>
+    <div id="paginasMenu"></div>
+    <!-- No pongo enlace a admin aquí -->
+</div>
+
+<div class="main-content">
+    <div id="inicio" class="section active">
+        <div class="inicio-contenido">
+            <h1 id="inicioTitulo">Cargando...</h1>
+            <p id="inicioTexto"></p>
+            <img id="inicioImagen" class="hero-img" style="display:none;">
+        </div>
+    </div>
+    <div id="galeria" class="section">
+        <div class="filtros" id="filtros"></div>
+        <div class="galeria-grid" id="galeriaGrid"></div>
+    </div>
+    <div id="blog" class="section">
+        <div class="blog-list" id="blogList"></div>
+    </div>
+    <div id="pagina" class="section">
+        <div class="pagina-contenido" id="paginaContenido"></div>
+    </div>
+</div>
+
+<div class="footer">
+    📷 <a href="#" id="instagramLink" target="_blank">@znipertraveling</a> · Zniper Zraveling © 2026
+</div>
+
+<div id="modal" class="modal">
+    <span class="close">&times;</span>
+    <button class="nav-btn prev">‹</button>
+    <img id="modalImg" src="">
+    <button class="nav-btn next">›</button>
+</div>
+
+<script>
+    // Estado global
+    let datos = {};
+    let fotosActuales = [];
+    let currentFotoIndex = 0;
+    let currentPageSlug = null;
+
+    // DOM elements
+    const menuBtn = document.getElementById('menuBtn');
+    const menuPanel = document.getElementById('menuPanel');
+    const sections = document.querySelectorAll('.section');
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modalImg');
+    const closeModal = document.querySelector('.modal .close');
+    const prevBtn = document.querySelector('.modal .prev');
+    const nextBtn = document.querySelector('.modal .next');
+
+    // Menú hamburguesa
+    menuBtn.addEventListener('click', () => {
+        menuBtn.classList.toggle('active');
+        menuPanel.classList.toggle('open');
+    });
+    document.querySelectorAll('.menu-panel a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const sectionId = link.getAttribute('data-section');
+            if (sectionId === 'pagina') return;
+            showSection(sectionId);
+            menuBtn.classList.remove('active');
+            menuPanel.classList.remove('open');
+        });
+    });
+
+    function showSection(sectionId, slug = null) {
+        sections.forEach(sec => sec.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+        if (sectionId === 'inicio') renderInicio();
+        if (sectionId === 'galeria') renderGaleria();
+        if (sectionId === 'blog') renderBlog();
+        if (sectionId === 'pagina' && slug) {
+            renderPagina(slug);
+        }
+        // Actualizar URL sin recargar (opcional)
+        history.pushState(null, '', `#${sectionId}`);
+    }
+
+    // Cargar datos globales
+    async function loadData() {
+        const res = await fetch('/api/datos');
+        datos = await res.json();
+        document.title = datos.titulo;
+        // Configurar Instagram
+        const instaLink = document.getElementById('instagramLink');
+        instaLink.href = datos.instagram || 'https://instagram.com/znipertraveling';
+        // Cargar páginas al menú
+        const paginasMenu = document.getElementById('paginasMenu');
+        paginasMenu.innerHTML = (datos.paginas || []).filter(p => p.visible).map(p => `<a href="#" data-page="${p.slug}">${p.titulo.toUpperCase()}</a>`).join('');
+        document.querySelectorAll('[data-page]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const slug = link.getAttribute('data-page');
+                showSection('pagina', slug);
+                menuBtn.classList.remove('active');
+                menuPanel.classList.remove('open');
+            });
+        });
+        renderInicio();
+        renderFiltros();
+        renderGaleria();
+        renderBlog();
+    }
+
+    function renderInicio() {
+        const inicio = datos.inicio || { bienvenida: '', texto: '', imagen: '' };
+        document.getElementById('inicioTitulo').textContent = inicio.bienvenida || datos.titulo;
+        document.getElementById('inicioTexto').innerHTML = inicio.texto.replace(/\n/g, '<br>');
+        const img = document.getElementById('inicioImagen');
+        if (inicio.imagen) {
+            img.src = inicio.imagen;
+            img.style.display = 'block';
+        } else {
+            img.style.display = 'none';
+        }
+    }
+
+    // Filtros y galería
+    let categoriaActiva = 'todos';
+    function renderFiltros() {
+        const container = document.getElementById('filtros');
+        let html = `<button class="filtro-btn activo" data-cat="todos">TODAS</button>`;
+        (datos.categorias || []).forEach(cat => {
+            html += `<button class="filtro-btn" data-cat="${cat}">${cat.toUpperCase()}</button>`;
+        });
+        container.innerHTML = html;
+        document.querySelectorAll('.filtro-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+                btn.classList.add('activo');
+                categoriaActiva = btn.getAttribute('data-cat');
+                renderGaleria();
+            });
+        });
+    }
+    function renderGaleria() {
+        const fotos = datos.fotos || [];
+        const filtradas = categoriaActiva === 'todos' ? fotos : fotos.filter(f => f.categoria === categoriaActiva);
+        fotosActuales = filtradas;
+        const grid = document.getElementById('galeriaGrid');
+        if (!filtradas.length) { grid.innerHTML = '<p style="text-align:center;">Sin fotos en esta categoría</p>'; return; }
+        let html = '';
+        filtradas.forEach((f, idx) => {
+            html += `<div class="foto-item" data-index="${idx}"><img class="foto-img" src="${f.archivo}" alt="${f.titulo}" loading="lazy"><div class="foto-info"><div>${f.titulo}</div><div class="foto-proyecto">${f.categoria}</div></div></div>`;
+        });
+        grid.innerHTML = html;
+        document.querySelectorAll('.foto-item').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const idx = parseInt(el.getAttribute('data-index'));
+                openModal(idx);
+            });
+        });
+    }
+    function openModal(idx) {
+        currentFotoIndex = idx;
+        modalImg.src = fotosActuales[idx].archivo;
+        modal.style.display = 'flex';
+    }
+    function nextFoto() { if (fotosActuales.length) { currentFotoIndex = (currentFotoIndex + 1) % fotosActuales.length; modalImg.src = fotosActuales[currentFotoIndex].archivo; } }
+    function prevFoto() { if (fotosActuales.length) { currentFotoIndex = (currentFotoIndex - 1 + fotosActuales.length) % fotosActuales.length; modalImg.src = fotosActuales[currentFotoIndex].archivo; } }
+    prevBtn.addEventListener('click', prevFoto);
+    nextBtn.addEventListener('click', nextFoto);
+    closeModal.addEventListener('click', () => modal.style.display = 'none');
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+    document.addEventListener('keydown', (e) => {
+        if (modal.style.display === 'flex') {
+            if (e.key === 'ArrowLeft') prevFoto();
+            if (e.key === 'ArrowRight') nextFoto();
+            if (e.key === 'Escape') modal.style.display = 'none';
+        }
+    });
+
+    // Blog
+    async function renderBlog() {
+        const articulos = datos.blog || [];
+        const container = document.getElementById('blogList');
+        if (!articulos.length) { container.innerHTML = '<p>Próximamente artículos...</p>'; return; }
+        let html = '';
+        [...articulos].reverse().forEach(a => {
+            html += `<div class="articulo-card"><h2><a href="/blog/${a.id}" target="_blank">${a.titulo}</a></h2><div class="fecha">${a.fecha}</div>${a.imagen ? `<img src="${a.imagen}" style="max-width:100%;">` : ''}<p>${a.texto.substring(0, 200)}${a.texto.length > 200 ? '...' : ''}</p></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Página dinámica
+    async function renderPagina(slug) {
+        const pagina = (datos.paginas || []).find(p => p.slug === slug && p.visible);
+        const container = document.getElementById('paginaContenido');
+        if (!pagina) { container.innerHTML = '<p>Página no encontrada</p>'; return; }
+        container.innerHTML = `<h1>${pagina.titulo}</h1><div>${pagina.contenido.replace(/\n/g, '<br>')}</div>`;
+    }
+
+    // Manejar hash inicial y navegación
+    window.addEventListener('load', () => {
+        loadData();
+        const hash = window.location.hash.slice(1);
+        if (hash === 'galeria') showSection('galeria');
+        else if (hash === 'blog') showSection('blog');
+        else showSection('inicio');
+    });
+</script>
+</body>
+</html>
