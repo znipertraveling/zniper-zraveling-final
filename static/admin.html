@@ -2,175 +2,950 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Zniper Admin · Conexión Real</title>
+    <title>Zniper Admin</title>
     <style>
         :root { --bg: #050505; --accent: #fff; --text: #ccc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; margin: 0; height: 100vh; }
-        .sidebar { width: 240px; border-right: 1px solid #222; padding: 20px; display: flex; flex-direction: column; }
-        .main { flex: 1; padding: 40px; overflow-y: auto; }
-        .nav-btn { width: 100%; padding: 12px; margin-bottom: 5px; background: none; border: none; color: #555; text-align: left; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; margin: 0; min-height: 100vh; }
+        .sidebar { width: 220px; border-right: 1px solid #222; padding: 16px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .main { flex: 1; padding: 28px 36px; overflow-y: auto; max-width: 920px; }
+        .nav-btn { width: 100%; padding: 10px; margin-bottom: 4px; background: none; border: none; color: #555; text-align: left; cursor: pointer; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.06em; }
         .nav-btn.active { color: #fff; background: #111; border-radius: 4px; }
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
-        .form-group { background: #0a0a0a; padding: 20px; border: 1px solid #1a1a1a; margin-bottom: 20px; border-radius: 8px; }
-        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px; }
-        .btn-action { background: #fff; color: #000; border: none; padding: 12px 24px; cursor: pointer; font-weight: bold; font-size: 0.7rem; border-radius: 4px; }
-        .item-list { margin-top: 20px; }
-        .item-card { background: #111; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
+        .form-group { background: #0a0a0a; padding: 18px; border: 1px solid #1a1a1a; margin-bottom: 16px; border-radius: 8px; }
+        label { display: block; font-size: 0.65rem; letter-spacing: 0.06em; color: #888; margin-bottom: 4px; text-transform: uppercase; }
+        input, textarea, select { width: 100%; padding: 10px; margin: 6px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        input[type="number"] { max-width: 120px; }
+        .btn-action { background: #fff; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: 600; font-size: 0.65rem; border-radius: 4px; letter-spacing: 0.06em; }
+        .btn-action.secondary { background: #333; color: #eee; }
+        .btn-small { font-size: 0.62rem; padding: 5px 8px; background: #2a2a2a; color: #ccc; border: 1px solid #444; cursor: pointer; border-radius: 4px; margin: 2px; }
+        .item-list { margin-top: 12px; }
+        .item-card { background: #111; padding: 14px; margin-bottom: 10px; border: 1px solid #222; border-radius: 6px; }
+        .item-card img.preview { width: 52px; height: 52px; object-fit: cover; }
+        .serie-admin { width: 100%; border-top: 1px solid #2a2a2a; margin-top: 10px; padding-top: 10px; }
+        .serie-fila-pie { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; }
+        .serie-fila-pie img { width: 72px; height: 72px; object-fit: cover; flex-shrink: 0; }
+        .serie-fila-pie textarea { flex: 1; min-width: 120px; min-height: 48px; margin: 0; }
+        .cat-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 6px 0; padding: 8px; background: #0d0d0d; border-radius: 4px; }
+        .bl-fila { border: 1px solid #2a2a2a; padding: 10px; margin: 8px 0; border-radius: 6px; background: #080808; }
+        .bl-fila textarea { min-height: 80px; }
+        .bl-fila img { max-width: 200px; max-height: 140px; object-fit: cover; display: block; margin: 6px 0; }
+        h2 { font-weight: 500; font-size: 1.1rem; margin: 0 0 8px 0; letter-spacing: 0.02em; }
+        .hint { color: #666; font-size: 0.8rem; margin-bottom: 12px; line-height: 1.45; }
+        .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 700px) { .row2 { grid-template-columns: 1fr; } }
+        .com-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+        .com-table th, .com-table td { border: 1px solid #2a2a2a; padding: 8px; text-align: left; vertical-align: top; }
+        .com-table th { color: #888; font-weight: 500; }
+        .com-preview { max-height: 3.2em; overflow: hidden; color: #aaa; }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <h2 style="letter-spacing: 3px; font-size: 1rem; text-align: center; margin-bottom: 30px;">ZNIPER ADMIN</h2>
-    <button class="nav-btn active" onclick="tab(event, 'p-fotos')">📸 Galería</button>
-    <button class="nav-btn" onclick="tab(event, 'p-blog')">📰 Blog</button>
-    <button class="nav-btn" onclick="tab(event, 'p-series')">🎬 Series</button>
-    <button class="nav-btn" onclick="tab(event, 'p-paginas')">📄 Páginas</button>
-    <button class="nav-btn" onclick="tab(event, 'p-cred')">🔐 Seguridad</button>
+    <h2 style="letter-spacing: 2px; font-size: 0.85rem; text-align: center; margin: 0 0 20px 0;">ZNIPER</h2>
+    <button type="button" class="nav-btn nav-primary active" data-panel="p-sitio" onclick="showAdminPanel('p-sitio')">🏠 Sitio e inicio</button>
+    <button type="button" class="nav-btn nav-primary" data-panel="p-fotos" onclick="showAdminPanel('p-fotos')">📸 Galería</button>
+    <button type="button" class="nav-btn nav-primary" data-panel="p-blog" onclick="showAdminPanel('p-blog')">📰 Blog</button>
+    <button type="button" class="nav-btn nav-primary" data-panel="p-series" onclick="showAdminPanel('p-series')">🎬 Series</button>
+    <button type="button" class="nav-btn nav-primary" id="nav-btn-sobremi" onclick="openSobreMiEditor()">👤 Sobre mí</button>
+    <button type="button" class="nav-btn nav-primary" data-panel="p-redes" onclick="showAdminPanel('p-redes')">📱 Redes y pie</button>
+    <div id="nav-paginas-sidebar"></div>
+    <button type="button" class="nav-btn nav-primary" data-panel="p-paginas" onclick="showAdminPanel('p-paginas')">➕ Nueva página</button>
+    <button type="button" class="nav-btn nav-primary" data-panel="p-comentarios" onclick="showAdminPanel('p-comentarios')">💬 Comentarios</button>
+    <button type="button" class="nav-btn nav-primary" data-panel="p-cred" onclick="showAdminPanel('p-cred')">🔐 Acceso</button>
+    <p style="margin-top:auto; font-size: 0.62rem; color: #444;"><a href="/" style="color:#666;">Ver sitio</a> · <a href="/api/logout" style="color:#666;">Salir</a></p>
 </div>
 
 <div class="main">
-    <div id="p-fotos" class="tab-panel active">
-        <h2>Galería</h2>
+    <div id="p-sitio" class="tab-panel active">
+        <h2>Sitio e inicio</h2>
+        <p class="hint">Título del sitio (pestaña del navegador y logo), textos globales y todo lo que se ve en la página de inicio.</p>
         <div class="form-group">
-            <label>Subir Imagen</label>
-            <input type="file" id="f-file">
-            <input type="text" id="f-tema" placeholder="Tema (ej: Urbano)">
-            <button class="btn-action" onclick="subirFoto()">SUBIR A GALERÍA</button>
+            <label>Título del sitio / proyecto</label>
+            <input type="text" id="site-titulo" placeholder="Ej. Zniper Traveling Project">
+            <div class="row2">
+                <div><label>Subtítulo (línea bajo el título en inicio)</label><input type="text" id="site-subtitulo"></div>
+                <div><label>Firma / lema (pie de secciones)</label><input type="text" id="site-firma"></div>
+            </div>
+            <label>Título principal en la página de inicio</label>
+            <input type="text" id="inicio-titulo">
+            <label>Pensamiento o texto libre (cita, nota…)</label>
+            <textarea id="inicio-pensamiento" rows="4" placeholder="Un párrafo corto, una cita…"></textarea>
+            <div class="row2">
+                <div><label>Fotos recientes (cantidad)</label><input type="number" id="inicio-num-fotos" min="1" max="24" step="1"></div>
+                <div><label>Entradas de blog en inicio</label><input type="number" id="inicio-num-blog" min="0" max="10" step="1"></div>
+            </div>
+            <div class="row2">
+                <div><label><input type="checkbox" id="inicio-mostrar-sub"> Mostrar subtítulo bajo el título</label></div>
+                <div><label><input type="checkbox" id="inicio-mostrar-blog"> Mostrar caja de blog reciente</label></div>
+            </div>
+            <div class="row2">
+                <div><label>Etiqueta sección fotos</label><input type="text" id="inicio-eti-fotos"></div>
+                <div><label>Etiqueta sección blog</label><input type="text" id="inicio-eti-blog"></div>
+            </div>
+            <label>Etiqueta pensamiento</label>
+            <input type="text" id="inicio-eti-pen">
+            <button type="button" class="btn-action" onclick="guardarSitio()">GUARDAR SITIO E INICIO</button>
+        </div>
+    </div>
+
+    <div id="p-fotos" class="tab-panel">
+        <h2>Categorías de la galería</h2>
+        <p class="hint">Ordena con las flechas. Las fotos se filtran por estas secciones. Al borrar una categoría, reasigna las fotos a otra.</p>
+        <div class="form-group" id="cats-box"></div>
+        <h2 style="margin-top:24px;">Subir a la galería</h2>
+        <div class="form-group">
+            <input type="file" id="f-file" accept="image/*">
+            <input type="text" id="f-titulo" placeholder="Título de la foto">
+            <label>Categoría</label>
+            <select id="f-cat"></select>
+            <button type="button" class="btn-action" onclick="subirFoto()">SUBIR</button>
         </div>
         <div id="lista-fotos" class="item-list"></div>
     </div>
 
     <div id="p-blog" class="tab-panel">
-        <h2>Nueva Entrada de Blog</h2>
+        <h2>Nueva entrada</h2>
         <div class="form-group">
-            <input type="text" id="b-titulo" placeholder="Título del artículo">
-            <textarea id="b-texto" rows="6" placeholder="Contenido..."></textarea>
-            <button class="btn-action" onclick="publicarBlog()">PUBLICAR EN BITÁCORA</button>
+            <input type="text" id="nb-titulo" placeholder="Título">
+            <div id="nb-bloques"></div>
+            <button type="button" class="btn-small" onclick="blogAddBlock('nuevo', 'titulo')">+ Título</button>
+            <button type="button" class="btn-small" onclick="blogAddBlock('nuevo', 'texto')">+ Párrafo</button>
+            <button type="button" class="btn-small" onclick="blogAddBlock('nuevo', 'imagen')">+ Imagen</button>
+            <button type="button" class="btn-action" onclick="publicarBlogNuevo()">PUBLICAR</button>
         </div>
+        <h2>Entradas publicadas</h2>
         <div id="lista-blog"></div>
     </div>
 
     <div id="p-series" class="tab-panel">
-        <h2>Crear Serie Fotográfica</h2>
+        <h2>Series</h2>
+        <p class="hint">Relato visual con fotos y texto.</p>
         <div class="form-group">
             <input type="text" id="s-titulo" placeholder="Nombre de la serie">
-            <textarea id="s-desc" placeholder="Descripción del concepto..."></textarea>
-            <button class="btn-action" onclick="crearSerie()">CREAR SERIE</button>
+            <textarea id="s-desc" rows="4" placeholder="Texto introductorio…"></textarea>
+            <button type="button" class="btn-action" onclick="crearSerie()">CREAR SERIE</button>
         </div>
         <div id="lista-series"></div>
     </div>
 
-    <div id="p-paginas" class="tab-panel">
-        <h2>Secciones Dinámicas</h2>
+    <div id="p-page-editor" class="tab-panel">
+        <h2 id="page-editor-title">Editar página</h2>
+        <p class="hint">Mismo editor que el blog: títulos, párrafos, imágenes y orden. Guarda al final.</p>
+        <div id="page-editor-root"></div>
+    </div>
+
+    <div id="p-redes" class="tab-panel">
+        <h2>Redes sociales y pie de página</h2>
+        <p class="hint">Texto de derechos / copyright que verán en el pie del sitio público, más tus enlaces (Instagram, etc.).</p>
         <div class="form-group">
-            <input type="text" id="pg-titulo" placeholder="Nombre de la página">
-            <button class="btn-action" onclick="crearPagina()">AGREGAR SECCIÓN</button>
+            <label>Texto del pie (ej. Zniper Traveling © 2025 · @zniipertraveling)</label>
+            <input type="text" id="footer-line" placeholder="Zniper Traveling © 2025">
+            <label style="margin-top:12px;">Enlaces</label>
+            <div id="redes-editor-rows"></div>
+            <button type="button" class="btn-small" onclick="addRedRow()">+ Añadir red</button>
+            <button type="button" class="btn-action" onclick="guardarRedes()" style="margin-top:12px;">GUARDAR REDES Y PIE</button>
         </div>
-        <div id="lista-paginas"></div>
+    </div>
+
+    <div id="p-paginas" class="tab-panel">
+        <h2>Nueva página</h2>
+        <p class="hint">Aquí solo <strong>creas</strong> páginas nuevas. Cada una aparece en el menú izquierdo; ábrela desde ahí para editarla (como el blog o la galería).</p>
+        <div class="form-group">
+            <label>Nueva página</label>
+            <input type="text" id="pg-titulo" placeholder="Título (ej. Sobre mí)">
+            <input type="text" id="pg-slug" placeholder="URL (opcional, ej. sobre-mi)">
+            <label>Tipo</label>
+            <select id="pg-tipo">
+                <option value="normal">Texto e imágenes (libre)</option>
+                <option value="sobremi">Sobre mí (título, párrafos, imágenes)</option>
+                <option value="galeria">Galería filtrada por categoría</option>
+                <option value="lista_blog">Listado de blog (como la sección Blog)</option>
+                <option value="lista_series">Listado de series (como la sección Series)</option>
+            </select>
+            <button type="button" class="btn-action" onclick="crearPagina()">CREAR PÁGINA</button>
+        </div>
+        <h3 style="font-size:0.85rem;color:#888;margin-top:1.5rem;">Páginas existentes</h3>
+        <p class="hint" style="margin-bottom:8px;">Eliminar una página del sitio (la edición es desde el menú izquierdo).</p>
+        <div id="lista-paginas-mini"></div>
+    </div>
+
+    <div id="p-comentarios" class="tab-panel">
+        <h2>Comentarios</h2>
+        <p class="hint">Revisa y elimina comentarios que no cumplan las normas. Los nuevos comentarios pueden quedar pendientes si activas la moderación.</p>
+        <div class="form-group">
+            <label><input type="checkbox" id="mod-comentarios"> Moderar comentarios antes de publicar (requiere tu aprobación)</label>
+            <button type="button" class="btn-action secondary" onclick="guardarModeracion()">Guardar opción de moderación</button>
+        </div>
+        <div id="lista-comentarios"></div>
     </div>
 
     <div id="p-cred" class="tab-panel">
-        <h2>Actualizar Acceso</h2>
+        <h2>Credenciales</h2>
         <div class="form-group">
-            <input type="text" id="u-nick" placeholder="Nuevo Usuario">
-            <input type="password" id="u-pass" placeholder="Nueva Contraseña">
-            <button class="btn-action" style="background: red; color: white;" onclick="actualizarCreds()">CAMBIAR CREDENCIALES</button>
+            <input type="text" id="u-nick" placeholder="Usuario">
+            <input type="password" id="u-pass" placeholder="Nueva contraseña">
+            <button type="button" class="btn-action" style="background:#7a2038;color:#fff;" onclick="actualizarCreds()">ACTUALIZAR</button>
         </div>
     </div>
 </div>
 
 <script>
     let datosLocales = {};
+    const fetchOpts = { credentials: 'same-origin' };
+    const blogDrafts = {};
+    let pageEditId = null;
+    let currentPageEditId = null;
+
+    function escTextarea(s) {
+        return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function escAttr(s) {
+        return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    }
+
+    function getSobrePagina() {
+        const ps = datosLocales.paginas || [];
+        return ps.find(p => p.slug === 'sobre-mi') || ps.find(p => p.tipo === 'sobremi') || ps.find(p => p.id === 1);
+    }
+    function showAdminPanel(pid) {
+        currentPageEditId = null;
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        const el = document.getElementById(pid);
+        if (el) el.classList.add('active');
+        document.querySelectorAll('.sidebar .nav-btn').forEach(b => b.classList.remove('active'));
+        const prim = document.querySelector(`.sidebar .nav-primary[data-panel="${pid}"]`);
+        if (prim) prim.classList.add('active');
+    }
+    function openPageEditor(id) {
+        currentPageEditId = id;
+        const p = (datosLocales.paginas || []).find(x => x.id === id);
+        if (!p) return;
+        document.getElementById('page-editor-title').textContent = 'Editar: ' + (p.titulo || 'Página');
+        if (p.tipo === 'normal' || p.tipo === 'sobremi') {
+            blogDrafts['p' + id] = JSON.parse(JSON.stringify(p.bloques || [{ tipo: 'texto', texto: '' }]));
+        }
+        document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+        document.getElementById('p-page-editor').classList.add('active');
+        document.querySelectorAll('.sidebar .nav-btn').forEach(b => b.classList.remove('active'));
+        const sob = getSobrePagina();
+        if (sob && id === sob.id) document.getElementById('nav-btn-sobremi').classList.add('active');
+        else {
+            const nb = document.querySelector(`.nav-page-item[data-page-id="${id}"]`);
+            if (nb) nb.classList.add('active');
+        }
+        renderPageEditorHTML();
+    }
+    function openSobreMiEditor() {
+        const p = getSobrePagina();
+        if (!p) {
+            alert('No hay página «Sobre mí». Créala en «Nueva página» con el tipo correspondiente (o slug sobre-mi).');
+            showAdminPanel('p-paginas');
+            return;
+        }
+        openPageEditor(p.id);
+    }
+    function renderSidebarPages() {
+        const box = document.getElementById('nav-paginas-sidebar');
+        if (!box) return;
+        const sobre = getSobrePagina();
+        const otros = (datosLocales.paginas || []).filter(p => !sobre || p.id !== sobre.id);
+        box.innerHTML = otros.length
+            ? '<div style="font-size:0.58rem;color:#666;margin:10px 0 4px;letter-spacing:0.1em;">TUS PÁGINAS</div>' +
+              otros.map(p => `<button type="button" class="nav-btn nav-page-item" data-page-id="${p.id}" data-panel="p-page-editor" onclick="openPageEditor(${p.id})">📄 ${escTextarea(p.titulo)}</button>`).join('')
+            : '';
+    }
+    function renderRedesEditor() {
+        const wrap = document.getElementById('redes-editor-rows');
+        if (!wrap) return;
+        const rs = datosLocales.redes_sociales || [{ nombre: '', url: '', icono: '' }];
+        wrap.innerHTML = rs.map((r, i) => `
+            <div class="red-row item-card" style="margin-bottom:10px;">
+                <div class="row2">
+                    <div><label>Nombre</label><input type="text" class="r-nom" value="${escAttr(r.nombre)}" placeholder="Instagram"></div>
+                    <div><label>Icono (emoji)</label><input type="text" class="r-ico" value="${escAttr(r.icono)}" placeholder="📷"></div>
+                </div>
+                <label>URL</label><input type="text" class="r-url" value="${escAttr(r.url)}" placeholder="https://instagram.com/...">
+                <button type="button" class="btn-small" onclick="this.parentElement.remove()">Quitar</button>
+            </div>
+        `).join('');
+    }
+    function addRedRow() {
+        const wrap = document.getElementById('redes-editor-rows');
+        const d = document.createElement('div');
+        d.className = 'red-row item-card';
+        d.style.marginBottom = '10px';
+        d.innerHTML = `<div class="row2"><div><label>Nombre</label><input type="text" class="r-nom" placeholder="Instagram"></div><div><label>Icono</label><input type="text" class="r-ico" placeholder="📷"></div></div><label>URL</label><input type="text" class="r-url" placeholder="https://"><button type="button" class="btn-small" onclick="this.parentElement.remove()">Quitar</button>`;
+        wrap.appendChild(d);
+    }
+    async function guardarRedes() {
+        const rows = document.querySelectorAll('#redes-editor-rows .red-row');
+        const redes_sociales = [];
+        rows.forEach(row => {
+            const nombre = row.querySelector('.r-nom')?.value.trim() || '';
+            const url = row.querySelector('.r-url')?.value.trim() || '';
+            const icono = row.querySelector('.r-ico')?.value.trim() || '';
+            if (nombre || url) redes_sociales.push({ nombre: nombre || 'Web', url, icono });
+        });
+        const texto_pie = document.getElementById('footer-line').value;
+        await fetch('/api/datos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ redes_sociales, texto_pie })
+        });
+        alert('Guardado');
+        cargar();
+    }
+    function renderPageEditorHTML() {
+        const root = document.getElementById('page-editor-root');
+        if (!root) return;
+        if (!currentPageEditId) { root.innerHTML = ''; return; }
+        const p = (datosLocales.paginas || []).find(x => x.id === currentPageEditId);
+        if (!p) { root.innerHTML = '<p>Página no encontrada.</p>'; return; }
+        let inner = '';
+        if (p.tipo === 'normal' || p.tipo === 'sobremi') {
+            blogDrafts['p' + p.id] = JSON.parse(JSON.stringify(p.bloques || [{ tipo: 'texto', texto: '' }]));
+            inner = `<p style="color:#888;font-size:0.8rem;">${p.tipo === 'sobremi' ? 'Títulos, párrafos e imágenes en el orden que quieras.' : ''}</p>
+                <div id="blog-bloques-p${p.id}"></div>
+                <button type="button" class="btn-small" onclick="blogAddBlock('p${p.id}','titulo')">+ Título</button>
+                <button type="button" class="btn-small" onclick="blogAddBlock('p${p.id}','texto')">+ Párrafo</button>
+                <button type="button" class="btn-small" onclick="blogAddBlock('p${p.id}','imagen')">+ Imagen</button>`;
+        } else if (p.tipo === 'lista_blog' || p.tipo === 'lista_series') {
+            inner = `<p style="color:#888;">Listado automático. Solo ajusta título, URL y visibilidad abajo.</p>`;
+        } else if (p.tipo === 'galeria') {
+            const cat = (p.parametros && p.parametros.categoria) || '';
+            inner = `<label>Categoría de la galería</label><select id="pg-gal-cat-${p.id}">${(datosLocales.categorias || []).map(c => `<option value="${escAttr(c)}" ${c === cat ? 'selected' : ''}>${escTextarea(c)}</option>`).join('')}</select>`;
+        }
+        root.innerHTML = `
+            <div class="form-group">
+                <label>Título (menú del sitio)</label>
+                <input type="text" id="pg-titulo-${p.id}" value="${escAttr(p.titulo)}">
+                <label>URL (slug)</label>
+                <input type="text" id="pg-slug-${p.id}" value="${escAttr(p.slug)}">
+                <label><input type="checkbox" id="pg-vis-${p.id}" ${p.visible !== false ? 'checked' : ''}> Visible en el menú público</label>
+                ${inner}
+                <button type="button" class="btn-action" onclick="guardarPagina(${p.id})">GUARDAR PÁGINA</button>
+                <button type="button" class="btn-action secondary" onclick="eliminarPaginaAdmin(${p.id})" style="margin-left:8px;">Eliminar página</button>
+            </div>`;
+        if (p.tipo === 'normal' || p.tipo === 'sobremi') {
+            renderBlogBloques('p' + p.id);
+        }
+    }
+    async function eliminarPaginaAdmin(id) {
+        if (!confirm('¿Eliminar esta página del sitio?')) return;
+        if (currentPageEditId === id) {
+            currentPageEditId = null;
+            showAdminPanel('p-paginas');
+        }
+        await fetch(`/api/paginas/${id}`, { method: 'DELETE', credentials: 'same-origin' });
+        cargar();
+    }
 
     async function cargar() {
-        const r = await fetch('/api/datos');
+        const r = await fetch('/api/datos', fetchOpts);
         datosLocales = await r.json();
+        const sel = document.getElementById('f-cat');
+        const cats = datosLocales.categorias || ['General'];
+        sel.innerHTML = cats.map(c => `<option value="${escAttr(c)}">${escTextarea(c)}</option>`).join('');
+        llenarSitioForm();
+        const fl = document.getElementById('footer-line');
+        if (fl) fl.value = datosLocales.texto_pie || '';
+        renderRedesEditor();
+        renderCats();
+        renderSidebarPages();
+        if (!blogDrafts.nuevo) blogDrafts.nuevo = [{ tipo: 'texto', texto: '' }];
+        renderNuevoBlogBloques();
+        pageEditId = null;
         renderTodo();
     }
 
-    function tab(e, id) {
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        e.currentTarget.classList.add('active');
+    function llenarSitioForm() {
+        document.getElementById('site-titulo').value = datosLocales.titulo || '';
+        document.getElementById('site-subtitulo').value = datosLocales.subtitulo || '';
+        document.getElementById('site-firma').value = datosLocales.firma || '';
+        const ini = datosLocales.inicio || {};
+        document.getElementById('inicio-titulo').value = ini.titulo || '';
+        document.getElementById('inicio-pensamiento').value = ini.pensamiento || '';
+        document.getElementById('inicio-num-fotos').value = ini.num_fotos != null ? ini.num_fotos : 4;
+        document.getElementById('inicio-num-blog').value = ini.num_entradas_blog != null ? ini.num_entradas_blog : 3;
+        document.getElementById('inicio-mostrar-sub').checked = ini.mostrar_subtitulo !== false;
+        document.getElementById('inicio-mostrar-blog').checked = ini.mostrar_blog_caja !== false;
+        document.getElementById('inicio-eti-fotos').value = ini.etiqueta_fotos || 'Reciente';
+        document.getElementById('inicio-eti-blog').value = ini.etiqueta_blog || 'Bitácora';
+        document.getElementById('inicio-eti-pen').value = ini.etiqueta_pensamiento || 'Pensamiento';
     }
 
-    // --- ACCIONES USANDO TUS RUTAS REALES ---
-
-    async function subirFoto() {
-        const file = document.getElementById('f-file').files[0];
-        const tema = document.getElementById('f-tema').value;
-        if(!file) return alert("Selecciona un archivo");
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('tema', tema);
-
-        const r = await fetch('/api/subir-foto', { method: 'POST', body: formData });
-        if(r.ok) { alert("Foto subida!"); cargar(); }
+    async function guardarSitio() {
+        const inicio = {
+            titulo: document.getElementById('inicio-titulo').value,
+            pensamiento: document.getElementById('inicio-pensamiento').value,
+            num_fotos: parseInt(document.getElementById('inicio-num-fotos').value, 10) || 4,
+            num_entradas_blog: parseInt(document.getElementById('inicio-num-blog').value, 10) || 0,
+            mostrar_subtitulo: document.getElementById('inicio-mostrar-sub').checked,
+            mostrar_blog_caja: document.getElementById('inicio-mostrar-blog').checked,
+            etiqueta_fotos: document.getElementById('inicio-eti-fotos').value,
+            etiqueta_blog: document.getElementById('inicio-eti-blog').value,
+            etiqueta_pensamiento: document.getElementById('inicio-eti-pen').value
+        };
+        const body = {
+            titulo: document.getElementById('site-titulo').value.trim() || 'Mi sitio',
+            subtitulo: document.getElementById('site-subtitulo').value,
+            firma: document.getElementById('site-firma').value,
+            inicio
+        };
+        const r = await fetch('/api/datos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(body)
+        });
+        if (r.ok) { alert('Guardado'); cargar(); }
     }
 
-    async function publicarBlog() {
-        const b = { titulo: document.getElementById('b-titulo').value, contenido: document.getElementById('b-texto').value };
+    function renderCats() {
+        const cats = datosLocales.categorias || [];
+        const box = document.getElementById('cats-box');
+        box.innerHTML = cats.map((c, i) => `
+            <div class="cat-row">
+                <strong>${escTextarea(c)}</strong>
+                <button type="button" class="btn-small" onclick="moverCat(${i},-1)" ${i===0?'disabled':''}>↑</button>
+                <button type="button" class="btn-small" onclick="moverCat(${i},1)" ${i===cats.length-1?'disabled':''}>↓</button>
+                <button type="button" class="btn-small" onclick="eliminarCat(${i})">Quitar</button>
+            </div>
+        `).join('') + `
+            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                <input type="text" id="nueva-cat" placeholder="Nueva categoría" style="flex:1; min-width:140px; margin:0;">
+                <button type="button" class="btn-action secondary" onclick="agregarCat()">Añadir</button>
+                <button type="button" class="btn-action" onclick="guardarCatsOrden()">Guardar orden y nombres</button>
+            </div>
+        `;
+    }
+
+    function moverCat(i, d) {
+        const cats = datosLocales.categorias || [];
+        const j = i + d;
+        if (j < 0 || j >= cats.length) return;
+        [cats[i], cats[j]] = [cats[j], cats[i]];
+        datosLocales.categorias = cats;
+        renderCats();
+        const sel = document.getElementById('f-cat');
+        sel.innerHTML = cats.map(c => `<option value="${escAttr(c)}">${escTextarea(c)}</option>`).join('');
+    }
+
+    async function agregarCat() {
+        const v = document.getElementById('nueva-cat').value.trim();
+        if (!v) return;
+        if ((datosLocales.categorias || []).includes(v)) return alert('Ya existe');
+        datosLocales.categorias = [...(datosLocales.categorias || []), v];
+        document.getElementById('nueva-cat').value = '';
+        await guardarCatsOrden();
+    }
+
+    async function eliminarCat(i) {
+        const cats = datosLocales.categorias || [];
+        if (cats.length <= 1) return alert('Debe quedar al menos una categoría');
+        const c = cats[i];
+        const opts = cats.filter(x => x !== c).map(x => `<option value="${escAttr(x)}">${escTextarea(x)}</option>`).join('');
+        const dest = prompt(`Reasignar fotos de "${c}" a la categoría. Escribe el nombre exacto de una categoría existente:`, cats.filter(x => x !== c)[0] || '');
+        if (!dest) return;
+        const r = await fetch('/api/categorias/reasignar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ eliminar: c, nueva: dest })
+        });
+        const j = await r.json();
+        if (!r.ok) return alert(j.error || 'Error');
+        await cargar();
+    }
+
+    async function guardarCatsOrden() {
+        const r = await fetch('/api/datos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ categorias: datosLocales.categorias })
+        });
+        if (r.ok) cargar();
+    }
+
+    function blogEnsure(key, bloques) {
+        if (!blogDrafts[key]) blogDrafts[key] = JSON.parse(JSON.stringify(bloques || [{ tipo: 'texto', texto: '' }]));
+    }
+
+    function blogAddBlock(key, tipo) {
+        const k = key === 'nuevo' ? 'nuevo' : key;
+        blogEnsure(k, blogDrafts[k]);
+        if (tipo === 'imagen') blogDrafts[k].push({ tipo: 'imagen', archivo: '', pie: '' });
+        else if (tipo === 'titulo') blogDrafts[k].push({ tipo: 'titulo', texto: '' });
+        else blogDrafts[k].push({ tipo: 'texto', texto: '' });
+        renderBlogBloques(k);
+    }
+
+    function blogDelBlock(key, idx) {
+        const k = key;
+        blogDrafts[k].splice(idx, 1);
+        if (!blogDrafts[k].length) blogDrafts[k].push({ tipo: 'texto', texto: '' });
+        renderBlogBloques(k);
+    }
+
+    function blogMoveBlock(key, idx, d) {
+        const k = key;
+        const a = blogDrafts[k];
+        if (!a) return;
+        const j = idx + d;
+        if (j < 0 || j >= a.length) return;
+        [a[idx], a[j]] = [a[j], a[idx]];
+        renderBlogBloques(k);
+    }
+
+    function renderNuevoBlogBloques() {
+        renderBlogBloques('nuevo');
+    }
+
+    function renderBlogBloques(key) {
+        const ks = String(key);
+        const el = ks === 'nuevo' ? document.getElementById('nb-bloques') : document.getElementById(`blog-bloques-${ks}`);
+        if (!el) return;
+        blogEnsure(key, blogDrafts[key]);
+        const b = blogDrafts[key];
+        el.innerHTML = b.map((bl, i) => {
+            if (bl.tipo === 'titulo') {
+                return `<div class="bl-fila">
+                    <span>Título / subtítulo ${i + 1}</span>
+                    <input type="text" placeholder="Encabezado dentro de la página" style="margin:6px 0;" value="${escAttr(bl.texto || '')}" oninput="blogDrafts[${JSON.stringify(ks)}][${i}].texto=this.value">
+                    <div>
+                        <button type="button" class="btn-small" onclick="blogMoveBlock(${JSON.stringify(ks)},${i},-1)">↑</button>
+                        <button type="button" class="btn-small" onclick="blogMoveBlock(${JSON.stringify(ks)},${i},1)">↓</button>
+                        <button type="button" class="btn-small" onclick="blogDelBlock(${JSON.stringify(ks)},${i})">Eliminar bloque</button>
+                    </div>
+                </div>`;
+            }
+            if (bl.tipo === 'imagen') {
+                return `<div class="bl-fila">
+                    <span>Imagen ${i + 1}</span>
+                    ${bl.archivo ? `<img src="${bl.archivo}" alt="">` : '<em style="color:#666;">Sin imagen</em>'}
+                    <input type="file" accept="image/*" onchange="blogSubirImagen(${JSON.stringify(ks)},${i},this)">
+                    <input type="text" placeholder="Pie de foto" value="${escAttr(bl.pie || '')}" oninput="blogDrafts[${JSON.stringify(ks)}][${i}].pie=this.value">
+                    <div>
+                        <button type="button" class="btn-small" onclick="blogMoveBlock(${JSON.stringify(ks)},${i},-1)">↑</button>
+                        <button type="button" class="btn-small" onclick="blogMoveBlock(${JSON.stringify(ks)},${i},1)">↓</button>
+                        <button type="button" class="btn-small" onclick="blogDelBlock(${JSON.stringify(ks)},${i})">Eliminar bloque</button>
+                    </div>
+                </div>`;
+            }
+            return `<div class="bl-fila">
+                <span>Párrafo ${i + 1}</span>
+                <textarea oninput="blogDrafts[${JSON.stringify(ks)}][${i}].texto=this.value">${escTextarea(bl.texto)}</textarea>
+                <div>
+                    <button type="button" class="btn-small" onclick="blogMoveBlock(${JSON.stringify(ks)},${i},-1)">↑</button>
+                    <button type="button" class="btn-small" onclick="blogMoveBlock(${JSON.stringify(ks)},${i},1)">↓</button>
+                    <button type="button" class="btn-small" onclick="blogDelBlock(${JSON.stringify(ks)},${i})">Eliminar bloque</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async function blogSubirImagen(key, idx, input) {
+        const file = input.files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('foto', file);
+        const r = await fetch('/api/subir-foto', { method: 'POST', body: fd, credentials: 'same-origin' });
+        const j = await r.json();
+        if (!r.ok) return alert(j.error || 'Error');
+        blogEnsure(key, blogDrafts[key]);
+        blogDrafts[key][idx].archivo = j.archivo;
+        renderBlogBloques(key);
+        input.value = '';
+    }
+
+    async function publicarBlogNuevo() {
+        const titulo = document.getElementById('nb-titulo').value.trim();
+        if (!titulo) return alert('Título obligatorio');
+        blogEnsure('nuevo', blogDrafts.nuevo);
         const r = await fetch('/api/blog', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(b)
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ titulo, bloques: blogDrafts.nuevo })
         });
-        if(r.ok) { alert("Blog publicado!"); cargar(); }
-    }
-
-    async function crearSerie() {
-        const s = { titulo: document.getElementById('s-titulo').value, descripcion: document.getElementById('s-desc').value };
-        const r = await fetch('/api/series', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(s)
-        });
-        if(r.ok) { alert("Serie creada!"); cargar(); }
-    }
-
-    async function crearPagina() {
-        const p = { titulo: document.getElementById('pg-titulo').value };
-        const r = await fetch('/api/paginas', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(p)
-        });
-        if(r.ok) { alert("Página agregada!"); cargar(); }
-    }
-
-    async function actualizarCreds() {
-        const c = { nickname: document.getElementById('u-nick').value, password: document.getElementById('u-pass').value };
-        const r = await fetch('/api/credenciales', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(c)
-        });
-        if(r.ok) alert("Seguridad actualizada!");
-    }
-
-    async function borrarItem(ruta, id) {
-        if(confirm("¿Seguro?")) {
-            await fetch(`${ruta}/${id}`, { method: 'DELETE' });
+        if (r.ok) {
+            document.getElementById('nb-titulo').value = '';
+            blogDrafts.nuevo = [{ tipo: 'texto', texto: '' }];
+            renderNuevoBlogBloques();
             cargar();
         }
     }
 
+    async function guardarBlogEdit(id) {
+        const titulo = document.getElementById(`blog-tit-${id}`).value.trim();
+        blogEnsure(id, blogDrafts[id]);
+        const r = await fetch(`/api/blog/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ titulo, bloques: blogDrafts[id] })
+        });
+        if (r.ok) { alert('Guardado'); pageEditId = null; cargar(); }
+    }
+
+    function toggleBlogEdit(id) {
+        pageEditId = pageEditId === 'b'+id ? null : 'b'+id;
+        const art = (datosLocales.blog || []).find(a => a.id === id);
+        if (art && pageEditId === 'b'+id) {
+            blogDrafts[id] = JSON.parse(JSON.stringify(art.bloques || [{ tipo: 'texto', texto: '' }]));
+        }
+        renderTodo();
+    }
+
+    async function subirFoto() {
+        const file = document.getElementById('f-file').files[0];
+        const titulo = document.getElementById('f-titulo').value.trim() || 'Sin título';
+        const categoria = document.getElementById('f-cat').value;
+        if (!file) return alert('Selecciona archivo');
+        const fd = new FormData();
+        fd.append('foto', file);
+        const r = await fetch('/api/subir-foto', { method: 'POST', body: fd, ...fetchOpts });
+        const j = await r.json();
+        if (!r.ok) return alert(j.error || 'Error');
+        const r2 = await fetch('/api/fotos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ titulo, categoria, archivo: j.archivo })
+        });
+        if (r2.ok) {
+            document.getElementById('f-file').value = '';
+            document.getElementById('f-titulo').value = '';
+            cargar();
+        }
+    }
+
+    async function crearSerie() {
+        const titulo = document.getElementById('s-titulo').value.trim();
+        const descripcion = document.getElementById('s-desc').value;
+        if (!titulo) return alert('Nombre de serie');
+        const r = await fetch('/api/series', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ titulo, descripcion, fotos: [] })
+        });
+        if (r.ok) {
+            document.getElementById('s-titulo').value = '';
+            document.getElementById('s-desc').value = '';
+            cargar();
+        }
+    }
+
+    async function crearPagina() {
+        const titulo = document.getElementById('pg-titulo').value.trim();
+        let slug = document.getElementById('pg-slug').value.trim().toLowerCase().replace(/\s+/g, '-');
+        const tipo = document.getElementById('pg-tipo').value;
+        if (!titulo) return alert('Título');
+        if (!slug) slug = titulo.toLowerCase().replace(/\s+/g, '-');
+        const body = { titulo, slug, tipo, visible: true };
+        if (tipo === 'sobremi') {
+            body.contenido = [];
+            body.bloques = [{ tipo: 'texto', texto: '' }];
+        } else if (tipo === 'normal') body.bloques = [{ tipo: 'texto', texto: '' }];
+        else if (tipo === 'galeria') {
+            body.contenido = '';
+            body.parametros = { categoria: (datosLocales.categorias || [])[0] || '' };
+        } else if (tipo === 'lista_blog' || tipo === 'lista_series') {
+            body.contenido = '';
+        }
+        const r = await fetch('/api/paginas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(body)
+        });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) {
+            document.getElementById('pg-titulo').value = '';
+            document.getElementById('pg-slug').value = '';
+            await cargar();
+            if (j.pagina && j.pagina.id != null) openPageEditor(j.pagina.id);
+        } else {
+            alert(j.error || 'No se pudo crear la página');
+        }
+    }
+
+    async function actualizarCreds() {
+        await fetch('/api/credenciales', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ nickname: document.getElementById('u-nick').value, password: document.getElementById('u-pass').value })
+        });
+        alert('Hecho');
+    }
+
+    async function borrarItem(ruta, id) {
+        if (!confirm('¿Seguro?')) return;
+        if (ruta === '/api/paginas' && currentPageEditId === id) {
+            currentPageEditId = null;
+            showAdminPanel('p-paginas');
+        }
+        await fetch(`${ruta}/${id}`, { method: 'DELETE', credentials: 'same-origin' });
+        cargar();
+    }
+
+    async function guardarSerieTexto(id) {
+        const titulo = document.getElementById(`serie-titulo-${id}`).value.trim();
+        const descripcion = document.getElementById(`serie-desc-${id}`).value;
+        await fetch(`/api/series/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ titulo, descripcion })
+        });
+        cargar();
+    }
+
+    async function subirFotoSerie(serieId) {
+        const input = document.getElementById(`serie-file-${serieId}`);
+        const file = input.files[0];
+        if (!file) return alert('Elige imagen');
+        const fd = new FormData();
+        fd.append('foto', file);
+        const r = await fetch('/api/subir-foto', { method: 'POST', body: fd, credentials: 'same-origin' });
+        const j = await r.json();
+        if (!r.ok) return alert(j.error || 'Error');
+        const resSerie = await fetch(`/api/series/${serieId}`, fetchOpts);
+        const serie = await resSerie.json();
+        const fotos = [...(serie.fotos || []), { archivo: j.archivo, pie: '' }];
+        await fetch(`/api/series/${serieId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ fotos })
+        });
+        input.value = '';
+        cargar();
+    }
+
+    async function guardarPiesSerie(serieId) {
+        const resSerie = await fetch(`/api/series/${serieId}`, fetchOpts);
+        const serie = await resSerie.json();
+        const fotos = (serie.fotos || []).map((_, i) => {
+            const el = document.getElementById(`pie-${serieId}-${i}`);
+            return { archivo: serie.fotos[i].archivo, pie: el ? el.value : serie.fotos[i].pie };
+        });
+        await fetch(`/api/series/${serieId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ fotos })
+        });
+        cargar();
+    }
+
+    async function quitarFotoSerie(serieId, index) {
+        if (!confirm('¿Quitar foto de la serie?')) return;
+        const resSerie = await fetch(`/api/series/${serieId}`, fetchOpts);
+        const serie = await resSerie.json();
+        const fotos = (serie.fotos || []).filter((_, i) => i !== index);
+        await fetch(`/api/series/${serieId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ fotos })
+        });
+        cargar();
+    }
+
+    async function guardarPagina(id) {
+        const p = (datosLocales.paginas || []).find(x => x.id === id);
+        if (!p) return;
+        const titulo = document.getElementById(`pg-titulo-${id}`).value.trim();
+        const slug = document.getElementById(`pg-slug-${id}`).value.trim().toLowerCase().replace(/\s+/g, '-');
+        const visible = document.getElementById(`pg-vis-${id}`).checked;
+        const body = { titulo, slug, visible };
+        if (p.tipo === 'normal' || p.tipo === 'sobremi') {
+            blogEnsure('p'+id, blogDrafts['p'+id]);
+            body.bloques = blogDrafts['p'+id];
+        }
+        if (p.tipo === 'galeria') {
+            body.parametros = { categoria: document.getElementById(`pg-gal-cat-${id}`).value };
+        }
+        const r = await fetch(`/api/paginas/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(body)
+        });
+        if (r.ok) {
+            alert('Guardado');
+            await cargar();
+        }
+    }
+
+    async function moverFotoGaleria(i, dir) {
+        const fotos = datosLocales.fotos || [];
+        const j = i + dir;
+        if (j < 0 || j >= fotos.length) return;
+        const ids = fotos.map(f => f.id);
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+        await fetch('/api/fotos/reordenar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ ids }) });
+        cargar();
+    }
+    async function moverBlogOrden(i, dir) {
+        const arts = datosLocales.blog || [];
+        const j = i + dir;
+        if (j < 0 || j >= arts.length) return;
+        const ids = arts.map(a => a.id);
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+        await fetch('/api/blog/reordenar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ ids }) });
+        cargar();
+    }
+    async function moverSerieOrden(i, dir) {
+        const series = datosLocales.series || [];
+        const j = i + dir;
+        if (j < 0 || j >= series.length) return;
+        const ids = series.map(s => s.id);
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+        await fetch('/api/series/reordenar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ ids }) });
+        cargar();
+    }
+    async function moverFotoEnSerie(serieId, i, dir) {
+        const s = (datosLocales.series || []).find(x => x.id === serieId);
+        const n = (s && s.fotos) ? s.fotos.length : 0;
+        const j = i + dir;
+        if (!n || j < 0 || j >= n) return;
+        const orden = [...Array(n).keys()];
+        [orden[i], orden[j]] = [orden[j], orden[i]];
+        await fetch(`/api/series/${serieId}/fotos/reordenar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ orden }) });
+        cargar();
+    }
+    async function borrarComentario(id) {
+        if (!confirm('¿Eliminar este comentario?')) return;
+        await fetch(`/api/comentarios/${id}`, { method: 'DELETE', credentials: 'same-origin' });
+        cargar();
+    }
+    async function guardarModeracion() {
+        const v = document.getElementById('mod-comentarios').checked;
+        await fetch('/api/datos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ moderacion_comentarios: v }) });
+        alert('Guardado');
+        cargar();
+    }
+
     function renderTodo() {
-        document.getElementById('lista-fotos').innerHTML = (datosLocales.fotos || []).map(f => `
-            <div class="item-card"><img src="${f.url}" style="width:50px"> <span>${f.tema || 'Sin tema'}</span> <button onclick="borrarItem('/api/fotos', ${f.id})">X</button></div>
-        `).join('');
-        
-        document.getElementById('lista-blog').innerHTML = (datosLocales.blog || []).map(b => `
-            <div class="item-card"><span>${b.titulo}</span> <button onclick="borrarItem('/api/blog', ${b.id})">X</button></div>
+        const mc = document.getElementById('mod-comentarios');
+        if (mc) mc.checked = !!datosLocales.moderacion_comentarios;
+
+        document.getElementById('lista-fotos').innerHTML = (datosLocales.fotos || []).map((f, i) => `
+            <div class="item-card" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <span style="color:#555; font-size:0.7rem; min-width:1.2rem;">${i + 1}</span>
+                <button type="button" class="btn-small" onclick="moverFotoGaleria(${i},-1)" ${i===0?'disabled':''}>↑</button>
+                <button type="button" class="btn-small" onclick="moverFotoGaleria(${i},1)" ${i===(datosLocales.fotos||[]).length-1?'disabled':''}>↓</button>
+                <img class="preview" src="${f.archivo}" alt="">
+                <div style="flex:1;"><strong>${escTextarea(f.titulo)}</strong><br><span style="color:#888;font-size:0.78rem;">${escTextarea(f.categoria)}</span></div>
+                <button type="button" class="btn-small" onclick="borrarItem('/api/fotos', ${f.id})">Eliminar</button>
+            </div>
         `).join('');
 
-        document.getElementById('lista-series').innerHTML = (datosLocales.series || []).map(s => `
-            <div class="item-card"><span>${s.titulo}</span> <button onclick="borrarItem('/api/series', ${s.id})">X</button></div>
-        `).join('');
+        document.getElementById('lista-blog').innerHTML = (datosLocales.blog || []).map((b, i) => {
+            const open = pageEditId === 'b'+b.id;
+            const nBlog = (datosLocales.blog || []).length;
+            if (!open) {
+                return `<div class="item-card"><span style="color:#555;font-size:0.7rem;">${i+1}</span>
+                    <button type="button" class="btn-small" onclick="moverBlogOrden(${i},-1)" ${i===0?'disabled':''}>↑</button>
+                    <button type="button" class="btn-small" onclick="moverBlogOrden(${i},1)" ${i===nBlog-1?'disabled':''}>↓</button>
+                    <strong>${escTextarea(b.titulo)}</strong> <span style="color:#666;font-size:0.75rem;">${escTextarea(b.fecha||'')}</span><br>
+                    <button type="button" class="btn-small" onclick="toggleBlogEdit(${b.id})">Editar bloques</button>
+                    <button type="button" class="btn-small" onclick="borrarItem('/api/blog', ${b.id})">Eliminar</button></div>`;
+            }
+            blogEnsure(b.id, b.bloques);
+            return `<div class="item-card">
+                <input type="text" id="blog-tit-${b.id}" value="${escAttr(b.titulo)}" style="margin-bottom:8px;">
+                <div id="blog-bloques-${b.id}"></div>
+                <button type="button" class="btn-small" onclick="blogAddBlock(${b.id},'titulo')">+ Título</button>
+                <button type="button" class="btn-small" onclick="blogAddBlock(${b.id},'texto')">+ Párrafo</button>
+                <button type="button" class="btn-small" onclick="blogAddBlock(${b.id},'imagen')">+ Imagen</button>
+                <button type="button" class="btn-action" onclick="guardarBlogEdit(${b.id})">Guardar entrada</button>
+                <button type="button" class="btn-small" onclick="toggleBlogEdit(${b.id})">Cerrar</button>
+            </div>`;
+        }).join('');
+        (datosLocales.blog || []).forEach(b => {
+            if (pageEditId === 'b'+b.id) renderBlogBloques(b.id);
+        });
+
+        document.getElementById('lista-series').innerHTML = (datosLocales.series || []).map((s, si) => {
+            const fotos = s.fotos || [];
+            const nSer = (datosLocales.series || []).length;
+            const nf = fotos.length;
+            const filasPie = fotos.map((f, i) => `
+                <div class="serie-fila-pie">
+                    <button type="button" class="btn-small" onclick="moverFotoEnSerie(${s.id},${i},-1)" ${i===0?'disabled':''}>↑</button>
+                    <button type="button" class="btn-small" onclick="moverFotoEnSerie(${s.id},${i},1)" ${i===nf-1?'disabled':''}>↓</button>
+                    <img src="${f.archivo}" alt="">
+                    <textarea id="pie-${s.id}-${i}">${escTextarea(f.pie)}</textarea>
+                    <button type="button" class="btn-small" onclick="quitarFotoSerie(${s.id}, ${i})">Quitar</button>
+                </div>
+            `).join('');
+            return `
+            <div class="item-card">
+                <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; align-items:center;">
+                    <span style="color:#555;font-size:0.7rem;">${si+1}</span>
+                    <button type="button" class="btn-small" onclick="moverSerieOrden(${si},-1)" ${si===0?'disabled':''}>↑ Serie</button>
+                    <button type="button" class="btn-small" onclick="moverSerieOrden(${si},1)" ${si===nSer-1?'disabled':''}>↓ Serie</button>
+                    <strong>${escTextarea(s.titulo)}</strong>
+                    <button type="button" class="btn-small" onclick="borrarItem('/api/series', ${s.id})">Eliminar serie</button></div>
+                <div class="serie-admin">
+                    <label>Título</label>
+                    <input type="text" id="serie-titulo-${s.id}" value="${escAttr(s.titulo)}">
+                    <label>Texto</label>
+                    <textarea id="serie-desc-${s.id}" rows="3">${escTextarea(s.descripcion)}</textarea>
+                    <button type="button" class="btn-action secondary" onclick="guardarSerieTexto(${s.id})">Guardar texto</button>
+                    <label style="margin-top:12px;">Añadir foto</label>
+                    <input type="file" id="serie-file-${s.id}" accept="image/*">
+                    <button type="button" class="btn-action" onclick="subirFotoSerie(${s.id})">Subir</button>
+                    ${fotos.length ? `<button type="button" class="btn-action secondary" onclick="guardarPiesSerie(${s.id})">Guardar pies</button>` : ''}
+                    ${filasPie}
+                </div>
+            </div>`;
+        }).join('');
+
+        const lpm = document.getElementById('lista-paginas-mini');
+        if (lpm) {
+            const pags = datosLocales.paginas || [];
+            lpm.innerHTML = pags.length
+                ? pags.map(p => `
+                    <div class="item-card" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+                        <strong>${escTextarea(p.titulo)}</strong>
+                        <span style="color:#666;font-size:0.75rem;">/${escTextarea(p.slug)}/ · ${escTextarea(p.tipo)}</span>
+                        <button type="button" class="btn-small" onclick="openPageEditor(${p.id})">Abrir editor</button>
+                        <button type="button" class="btn-small" onclick="borrarItem('/api/paginas', ${p.id})">Eliminar</button>
+                    </div>`).join('')
+                : '<p style="color:#666;">Aún no hay páginas creadas.</p>';
+        }
+
+        const pePanel = document.getElementById('p-page-editor');
+        if (pePanel && pePanel.classList.contains('active') && currentPageEditId) {
+            renderPageEditorHTML();
+        }
+
+        const lc = document.getElementById('lista-comentarios');
+        if (lc) {
+            const coms = [...(datosLocales.comentarios || [])].reverse();
+            if (!coms.length) lc.innerHTML = '<p style="color:#666;">No hay comentarios.</p>';
+            else {
+                lc.innerHTML = `<table class="com-table"><thead><tr><th>Fecha</th><th>Tipo</th><th>Usuario</th><th>Texto</th><th>Estado</th><th></th></tr></thead><tbody>` +
+                    coms.map(c => `<tr>
+                        <td>${escTextarea(c.fecha || '')}</td>
+                        <td>${escTextarea(c.tipo || '')} #${c.entidad_id != null ? c.entidad_id : ''}</td>
+                        <td>${escTextarea(c.nickname || '')}</td>
+                        <td><div class="com-preview">${escTextarea((c.texto || '').substring(0, 200))}${(c.texto || '').length > 200 ? '…' : ''}</div></td>
+                        <td>${c.aprobado ? 'visible' : 'pendiente'}</td>
+                        <td><button type="button" class="btn-small" onclick="borrarComentario(${c.id})">Eliminar</button></td>
+                    </tr>`).join('') + `</tbody></table>`;
+            }
+        }
     }
 
     cargar();

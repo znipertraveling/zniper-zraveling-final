@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Flask (app.py)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/app.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Abrir sitio en Chrome (puerto 5002)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://127.0.0.1:5002",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}

@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Zniper Zraveling</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', system-ui, sans-serif; background: #050505; color: #e0e0e0; overflow-x: hidden; }
@@ -30,25 +33,58 @@
         .galeria-grid { column-count: 3; column-gap: 1.2rem; max-width: 1200px; margin: 0 auto; }
         .foto-item { break-inside: avoid; margin-bottom: 1.2rem; cursor: pointer; transition: transform 0.2s; }
         .foto-item:hover { transform: scale(0.98); }
-        .foto-img { width: 100%; display: block; }
+        .foto-img { width: 100%; display: block; filter: grayscale(100%) contrast(1.05); }
+        .foto-info { font-size: 0.7rem; color: #888; margin-top: 0.4rem; letter-spacing: 0.02em; }
         .filtros { text-align: center; margin-bottom: 2rem; }
         .filtro-btn { background: transparent; border: 1px solid #333; padding: 0.3rem 1rem; margin: 0.2rem; color: #aaa; cursor: pointer; transition: 0.2s; }
         .filtro-btn.activo, .filtro-btn:hover { background: #1a1a1a; color: white; border-color: white; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
-        .modal img { max-width: 90%; max-height: 85%; object-fit: contain; transition: opacity 0.3s; }
+        .modal img { max-width: 90%; max-height: 85%; object-fit: contain; transition: opacity 0.3s; filter: grayscale(100%); }
         .modal .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(30,30,30,0.8); color: white; border: none; font-size: 2rem; padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; }
         .modal .nav-btn:hover { background: rgba(255,255,255,0.2); }
         .modal .prev { left: 15px; }
         .modal .next { right: 15px; }
         .modal .close { position: absolute; top: 20px; right: 30px; font-size: 2rem; cursor: pointer; color: #aaa; }
         .blog-list, .series-list, .pagina-contenido { max-width: 800px; margin: 0 auto; }
+        .series-lead { font-family: 'EB Garamond', Georgia, serif; font-size: 1.15rem; color: #888; font-style: italic; text-align: center; margin-bottom: 2rem; font-weight: 400; }
         .articulo-card, .serie-card { background: #0a0a0a; border: 1px solid #222; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .articulo-card h2 a, .serie-card h2 a { color: white; text-decoration: none; }
+        .serie-card-thumb { width: 100%; max-height: 200px; object-fit: cover; filter: grayscale(100%); margin-bottom: 1rem; border: 1px solid #2a2a2a; }
+        .articulo-card h2 a, .serie-card h2 a { color: white; text-decoration: none; font-weight: 400; letter-spacing: 0.02em; }
         .fecha { font-size: 0.7rem; color: #666; margin: 0.5rem 0; }
         .inicio-contenido { max-width: 900px; margin: 0 auto; text-align: center; }
-        .inicio-contenido h1 { font-size: 2.5rem; font-weight: 300; margin-bottom: 2rem; }
-        .inicio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-top: 2rem; }
-        .inicio-foto { width: 100%; aspect-ratio: 4/3; object-fit: cover; cursor: pointer; }
+        .inicio-contenido h1 { font-family: 'EB Garamond', Georgia, serif; font-size: 2.5rem; font-weight: 400; margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+        .inicio-sub { font-size: 0.85rem; color: #777; font-weight: 300; margin-bottom: 1.5rem; letter-spacing: 0.15em; text-transform: uppercase; }
+        .inicio-pen-wrap { max-width: 640px; margin: 0 auto 2rem; text-align: center; }
+        .inicio-mini-tit { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: #666; margin-bottom: 0.6rem; font-weight: 400; }
+        .inicio-pen { font-family: 'EB Garamond', Georgia, serif; font-size: 1.2rem; font-style: italic; color: #aaa; line-height: 1.6; border-left: 2px solid #333; padding-left: 1rem; margin: 0; text-align: left; white-space: pre-wrap; }
+        .inicio-layout { display: grid; grid-template-columns: minmax(200px, 320px) 1fr; gap: 2rem; align-items: start; text-align: left; margin-top: 1rem; }
+        @media (max-width: 800px) { .inicio-layout { grid-template-columns: 1fr; } }
+        .inicio-blog-caja { background: #0a0a0a; border: 1px solid #222; padding: 1rem 1.2rem; border-radius: 4px; }
+        .inicio-blog-item { border-bottom: 1px solid #222; padding: 0.6rem 0; font-size: 0.85rem; }
+        .inicio-blog-item:last-child { border-bottom: none; }
+        .inicio-blog-item a { color: #ddd; text-decoration: none; }
+        .inicio-blog-item a:hover { color: #fff; text-decoration: underline; }
+        .inicio-blog-item .fb { font-size: 0.65rem; color: #555; margin-top: 0.2rem; }
+        .inicio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.8rem; }
+        .inicio-foto { width: 100%; aspect-ratio: 4/3; object-fit: cover; cursor: pointer; filter: grayscale(100%); }
+        .pag-prosa { font-family: 'EB Garamond', Georgia, serif; font-size: 1.1rem; line-height: 1.65; color: #bbb; margin: 1rem 0; white-space: pre-wrap; }
+        .pag-fig { margin: 1.5rem 0; }
+        .pag-fig img { width: 100%; display: block; filter: grayscale(100%); border: 1px solid #222; }
+        .pag-fig figcaption { font-size: 0.8rem; color: #777; margin-top: 0.5rem; font-style: italic; }
+        .serie-detalle { max-width: 960px; margin: 0 auto; }
+        .serie-detalle .volver-series { background: transparent; border: 1px solid #444; color: #ccc; padding: 0.5rem 1rem; cursor: pointer; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2rem; transition: 0.2s; }
+        .serie-detalle .volver-series:hover { border-color: #888; color: #fff; }
+        .serie-detalle h1 { font-family: 'EB Garamond', Georgia, serif; font-weight: 400; font-size: 2.2rem; margin-bottom: 1rem; }
+        .serie-detalle .serie-prosa { font-family: 'EB Garamond', Georgia, serif; font-size: 1.15rem; line-height: 1.65; color: #bbb; margin-bottom: 2.5rem; white-space: pre-wrap; }
+        .serie-fotos-editorial { display: flex; flex-direction: column; gap: 2.5rem; }
+        .serie-fig { margin: 0; }
+        .serie-fig img { width: 100%; display: block; filter: grayscale(100%) contrast(1.05); border: 1px solid #1a1a1a; cursor: pointer; }
+        .serie-fig figcaption { font-size: 0.8rem; color: #777; margin-top: 0.6rem; font-style: italic; font-family: 'EB Garamond', Georgia, serif; }
+        .serie-comentarios { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #222; }
+        .serie-comentarios h3 { font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; margin-bottom: 1rem; font-weight: 400; }
+        .serie-comentarios input, .serie-comentarios textarea, .serie-comentarios select { width: 100%; max-width: 480px; padding: 0.6rem; margin: 0.4rem 0; background: #0a0a0a; border: 1px solid #333; color: #ddd; font-family: inherit; }
+        .serie-comentarios button { margin-top: 0.5rem; background: #eaeaea; color: #111; border: none; padding: 0.5rem 1.2rem; cursor: pointer; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+        .comentario-item { background: #0a0a0a; border: 1px solid #222; padding: 0.8rem; margin-bottom: 0.6rem; font-size: 0.85rem; }
         .toast { position: fixed; bottom: 30px; right: 30px; background: #1e1e1e; border-left: 4px solid #4caf50; padding: 0.8rem 1.2rem; color: white; z-index: 3000; font-size: 0.8rem; border-radius: 4px; animation: slideIn 0.3s; }
         .toast.error { border-left-color: #f44336; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
@@ -70,7 +106,21 @@
     <div id="inicio" class="section active">
         <div class="inicio-contenido">
             <h1 id="inicioTitulo">Cargando...</h1>
-            <div class="inicio-grid" id="inicioFotos"></div>
+            <p id="inicioSub" class="inicio-sub"></p>
+            <div id="inicioPenWrap" class="inicio-pen-wrap" style="display:none;">
+                <p class="inicio-mini-tit" id="inicioEtiPen"></p>
+                <blockquote id="inicioPensamiento" class="inicio-pen"></blockquote>
+            </div>
+            <div class="inicio-layout" id="inicioLayout">
+                <div id="inicioBlogCaja" class="inicio-blog-caja" style="display:none;">
+                    <h3 class="inicio-mini-tit" id="inicioEtiBlog"></h3>
+                    <div id="inicioBlogList"></div>
+                </div>
+                <div>
+                    <h3 class="inicio-mini-tit" id="inicioEtiFotos"></h3>
+                    <div class="inicio-grid" id="inicioFotos"></div>
+                </div>
+            </div>
         </div>
     </div>
     <div id="galeria" class="section">
@@ -81,95 +131,11 @@
         <div class="blog-list" id="blogList"></div>
     </div>
     <div id="series" class="section">
-        <div class="series-list" id="seriesList"></div>
-    </div>
-    <div id="pagina" class="section">
-        <div class="pag
-cat > ~/zniper-admin/static/index.html << 'EOF'
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Zniper Zraveling</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: #050505; color: #e0e0e0; overflow-x: hidden; }
-        .logo { position: fixed; top: 20px; left: 25px; z-index: 1001; font-size: 1.2rem; font-weight: 300; letter-spacing: 2px; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); padding: 0.3rem 0.8rem; cursor: pointer; transition: 0.2s; border-radius: 30px; }
-        .logo:hover { background: rgba(255,255,255,0.1); }
-        .menu-btn { position: fixed; top: 20px; right: 25px; width: 44px; height: 44px; cursor: pointer; z-index: 1000; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .menu-btn span, .menu-btn span::before, .menu-btn span::after { display: block; width: 24px; height: 2px; background: white; position: relative; transition: 0.3s; }
-        .menu-btn span::before, .menu-btn span::after { content: ''; position: absolute; }
-        .menu-btn span::before { bottom: 8px; }
-        .menu-btn span::after { top: 8px; }
-        .menu-btn.active span { background: transparent; }
-        .menu-btn.active span::before { transform: rotate(45deg); bottom: 0; }
-        .menu-btn.active span::after { transform: rotate(-45deg); top: 0; }
-        .menu-panel { position: fixed; top: 0; right: -320px; width: 300px; height: 100vh; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-left: 1px solid rgba(255,255,255,0.1); z-index: 999; transition: right 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1); padding: 100px 25px 30px; box-shadow: -5px 0 20px rgba(0,0,0,0.5); }
-        .menu-panel.open { right: 0; }
-        .menu-panel a { display: block; color: #ddd; text-decoration: none; padding: 14px 0; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); transition: 0.2s; font-weight: 300; }
-        .menu-panel a:hover { color: white; padding-left: 8px; }
-        .main-content { min-height: 100vh; padding: 80px 20px 60px; }
-        .footer { position: fixed; bottom: 15px; left: 20px; font-size: 0.7rem; color: #555; z-index: 10; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 20px; backdrop-filter: blur(4px); }
-        .footer a { color: #e4405f; text-decoration: none; margin-left: 5px; }
-        .section { display: none; animation: fade 0.4s; }
-        .section.active { display: block; }
-        @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .galeria-grid { column-count: 3; column-gap: 1.2rem; max-width: 1200px; margin: 0 auto; }
-        .foto-item { break-inside: avoid; margin-bottom: 1.2rem; cursor: pointer; transition: transform 0.2s; }
-        .foto-item:hover { transform: scale(0.98); }
-        .foto-img { width: 100%; display: block; }
-        .filtros { text-align: center; margin-bottom: 2rem; }
-        .filtro-btn { background: transparent; border: 1px solid #333; padding: 0.3rem 1rem; margin: 0.2rem; color: #aaa; cursor: pointer; transition: 0.2s; }
-        .filtro-btn.activo, .filtro-btn:hover { background: #1a1a1a; color: white; border-color: white; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
-        .modal img { max-width: 90%; max-height: 85%; object-fit: contain; transition: opacity 0.3s; }
-        .modal .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(30,30,30,0.8); color: white; border: none; font-size: 2rem; padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; }
-        .modal .nav-btn:hover { background: rgba(255,255,255,0.2); }
-        .modal .prev { left: 15px; }
-        .modal .next { right: 15px; }
-        .modal .close { position: absolute; top: 20px; right: 30px; font-size: 2rem; cursor: pointer; color: #aaa; }
-        .blog-list, .series-list, .pagina-contenido { max-width: 800px; margin: 0 auto; }
-        .articulo-card, .serie-card { background: #0a0a0a; border: 1px solid #222; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .articulo-card h2 a, .serie-card h2 a { color: white; text-decoration: none; }
-        .fecha { font-size: 0.7rem; color: #666; margin: 0.5rem 0; }
-        .inicio-contenido { max-width: 900px; margin: 0 auto; text-align: center; }
-        .inicio-contenido h1 { font-size: 2.5rem; font-weight: 300; margin-bottom: 2rem; }
-        .inicio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-top: 2rem; }
-        .inicio-foto { width: 100%; aspect-ratio: 4/3; object-fit: cover; cursor: pointer; }
-        .toast { position: fixed; bottom: 30px; right: 30px; background: #1e1e1e; border-left: 4px solid #4caf50; padding: 0.8rem 1.2rem; color: white; z-index: 3000; font-size: 0.8rem; border-radius: 4px; animation: slideIn 0.3s; }
-        .toast.error { border-left-color: #f44336; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-        @media (max-width: 700px) { .galeria-grid { column-count: 2; } .logo { font-size: 1rem; top: 15px; left: 15px; } }
-        @media (max-width: 500px) { .galeria-grid { column-count: 1; } }
-    </style>
-</head>
-<body>
-<div class="logo" id="logo">Zniper Zraveling</div>
-<div class="menu-btn" id="menuBtn"><span></span></div>
-<div class="menu-panel" id="menuPanel">
-    <a href="#" data-section="inicio">INICIO</a>
-    <a href="#" data-section="galeria">GALERÍA</a>
-    <a href="#" data-section="blog">BLOG</a>
-    <a href="#" data-section="series">SERIES</a>
-    <div id="paginasMenu"></div>
-</div>
-<div class="main-content">
-    <div id="inicio" class="section active">
-        <div class="inicio-contenido">
-            <h1 id="inicioTitulo">Cargando...</h1>
-            <div class="inicio-grid" id="inicioFotos"></div>
+        <div id="seriesBrowse">
+            <p class="series-lead" id="seriesLead">Series fotográficas</p>
+            <div class="series-list" id="seriesList"></div>
         </div>
-    </div>
-    <div id="galeria" class="section">
-        <div class="filtros" id="filtros"></div>
-        <div class="galeria-grid" id="galeriaGrid"></div>
-    </div>
-    <div id="blog" class="section">
-        <div class="blog-list" id="blogList"></div>
-    </div>
-    <div id="series" class="section">
-        <div class="series-list" id="seriesList"></div>
+        <div id="serieDetalle" class="serie-detalle" style="display:none;"></div>
     </div>
     <div id="pagina" class="section">
         <div class="pagina-contenido" id="paginaContenido"></div>
@@ -178,12 +144,15 @@ cat > ~/zniper-admin/static/index.html << 'EOF'
 <div class="footer" id="footerSocial"></div>
 <div id="modal" class="modal">
     <span class="close">&times;</span>
-    <button class="nav-btn prev">‹</button>
-    <img id="modalImg" src="">
-    <button class="nav-btn next">›</button>
+    <button type="button" class="nav-btn prev">‹</button>
+    <img id="modalImg" src="" alt="">
+    <button type="button" class="nav-btn next">›</button>
 </div>
 <script>
     let datos = {}, fotosActuales = [], currentFotoIndex = 0;
+    function escHtml(s) {
+        return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
     const logo = document.getElementById('logo'), menuBtn = document.getElementById('menuBtn'), menuPanel = document.getElementById('menuPanel');
     const sections = document.querySelectorAll('.section'), modal = document.getElementById('modal'), modalImg = document.getElementById('modalImg');
     const closeModal = document.querySelector('.modal .close'), prevBtn = document.querySelector('.modal .prev'), nextBtn = document.querySelector('.modal .next');
@@ -202,26 +171,37 @@ cat > ~/zniper-admin/static/index.html << 'EOF'
     });
     function showSection(sectionId, slug = null) {
         sections.forEach(sec => sec.classList.remove('active'));
-        document.getElementById(sectionId).classList.add('active');
+        const el = document.getElementById(sectionId);
+        if (el) el.classList.add('active');
         if (sectionId === 'inicio') renderInicio();
         if (sectionId === 'galeria') renderGaleria();
         if (sectionId === 'blog') renderBlog();
-        if (sectionId === 'series') renderSeries();
+        if (sectionId === 'series') { volverSeries(); renderSeries(); }
         if (sectionId === 'pagina' && slug) renderPagina(slug);
         history.pushState(null, '', `#${sectionId}`);
+    }
+    function volverSeries() {
+        document.getElementById('seriesBrowse').style.display = 'block';
+        document.getElementById('serieDetalle').style.display = 'none';
+        document.getElementById('serieDetalle').innerHTML = '';
     }
     async function loadData() {
         try {
             const res = await fetch('/api/datos');
             datos = await res.json();
-            document.title = datos.titulo;
+            document.title = datos.titulo || 'Zniper';
+            const logoEl = document.getElementById('logo');
+            if (logoEl) logoEl.textContent = datos.titulo || 'Zniper';
+            const sub = document.getElementById('inicioSub');
+            if (sub) sub.textContent = datos.subtitulo || '';
             const footer = document.getElementById('footerSocial');
+            const pieTxt = (datos.texto_pie || '').trim() || `${datos.titulo || 'Zniper Traveling'} © 2025`;
             if (datos.redes_sociales && datos.redes_sociales.length) {
                 let html = '';
-                datos.redes_sociales.forEach(r => { html += `<a href="${r.url}" target="_blank" style="margin-left:8px;">${r.icono || '🔗'} ${r.nombre}</a>`; });
-                footer.innerHTML = html + ` · Zniper Zraveling © 2026`;
+                datos.redes_sociales.forEach(r => { html += `<a href="${r.url}" target="_blank" rel="noopener" style="margin-left:8px;">${r.icono || '🔗'} ${r.nombre}</a>`; });
+                footer.innerHTML = html + ` · ${escHtml(pieTxt)}`;
             } else {
-                footer.innerHTML = `📷 <a href="https://instagram.com/znipertraveling" target="_blank">@znipertraveling</a> · Zniper Zraveling © 2026`;
+                footer.innerHTML = `📷 <a href="https://instagram.com/zniipertraveling" target="_blank" rel="noopener">@zniipertraveling</a> · ${escHtml(pieTxt)}`;
             }
             const paginasMenu = document.getElementById('paginasMenu');
             paginasMenu.innerHTML = (datos.paginas || []).filter(p => p.visible).map(p => `<a href="#" data-page="${p.slug}">${p.titulo.toUpperCase()}</a>`).join('');
@@ -234,6 +214,8 @@ cat > ~/zniper-admin/static/index.html << 'EOF'
                     menuPanel.classList.remove('open');
                 });
             });
+            const lead = document.getElementById('seriesLead');
+            if (lead) lead.textContent = datos.firma ? `Series · ${datos.firma.replace(/^—\s*|—\s*$/g, '').trim()}` : 'Series fotográficas · calle en blanco y negro';
             renderInicio();
             renderFiltros();
             renderGaleria();
@@ -241,14 +223,58 @@ cat > ~/zniper-admin/static/index.html << 'EOF'
             renderSeries();
         } catch (error) { console.error(error); }
     }
+    function previewTextoBlog(a) {
+        const bl = a.bloques || [];
+        for (const b of bl) {
+            if ((b.tipo === 'texto' || b.tipo === 'titulo') && b.texto) return b.texto;
+        }
+        return a.texto || '';
+    }
+    function previewImgBlog(a) {
+        const bl = a.bloques || [];
+        for (const b of bl) { if (b.tipo === 'imagen' && b.archivo) return b.archivo; }
+        return a.imagen || '';
+    }
     function renderInicio() {
-        const inicio = datos.inicio || { titulo: 'Bienvenido' };
-        document.getElementById('inicioTitulo').textContent = inicio.titulo;
-        const ultimasFotos = (datos.fotos || []).slice(-4);
+        const inicio = datos.inicio || {};
+        document.getElementById('inicioTitulo').textContent = inicio.titulo || 'Bienvenido';
+        const sub = document.getElementById('inicioSub');
+        if (inicio.mostrar_subtitulo !== false) {
+            sub.style.display = '';
+            sub.textContent = datos.subtitulo || '';
+        } else { sub.style.display = 'none'; }
+        const pen = (inicio.pensamiento || '').trim();
+        const penWrap = document.getElementById('inicioPenWrap');
+        const penEl = document.getElementById('inicioPensamiento');
+        const penEti = document.getElementById('inicioEtiPen');
+        if (pen) {
+            penWrap.style.display = 'block';
+            penEti.textContent = inicio.etiqueta_pensamiento || 'Pensamiento';
+            penEl.textContent = pen;
+        } else { penWrap.style.display = 'none'; }
+        document.getElementById('inicioEtiFotos').textContent = inicio.etiqueta_fotos || 'Reciente';
+        const n = Math.min(Math.max(parseInt(inicio.num_fotos, 10) || 4, 1), 48);
+        const ultimasFotos = (datos.fotos || []).slice(-n);
         const grid = document.getElementById('inicioFotos');
-        if (!ultimasFotos.length) { grid.innerHTML = '<p>Sin fotos aún. Sube tus primeras imágenes.</p>'; return; }
+        const blogCaja = document.getElementById('inicioBlogCaja');
+        const blogList = document.getElementById('inicioBlogList');
+        const arts = datos.blog || [];
+        const nb = Math.min(Math.max(parseInt(inicio.num_entradas_blog, 10) || 3, 0), 10);
+        if (inicio.mostrar_blog_caja !== false && nb > 0 && arts.length) {
+            blogCaja.style.display = 'block';
+            document.getElementById('inicioEtiBlog').textContent = inicio.etiqueta_blog || 'Bitácora';
+            const recientes = [...arts].reverse().slice(0, nb);
+            blogList.innerHTML = recientes.map(a => {
+                const prev = previewTextoBlog(a).substring(0, 90);
+                return `<div class="inicio-blog-item"><a href="#" data-blog-open="${a.id}">${escHtml(a.titulo)}</a><div class="fb">${escHtml(a.fecha || '')}</div>${prev ? `<div style="color:#777;font-size:0.8rem;margin-top:0.3rem;">${escHtml(prev)}${prev.length >= 90 ? '…' : ''}</div>` : ''}</div>`;
+            }).join('');
+            blogList.querySelectorAll('[data-blog-open]').forEach(el => {
+                el.addEventListener('click', (e) => { e.preventDefault(); window.open(`/blog/${el.getAttribute('data-blog-open')}`, '_blank'); });
+            });
+        } else { blogCaja.style.display = 'none'; }
+        if (!ultimasFotos.length) { grid.innerHTML = '<p style="color:#666;">Sin fotos aún. Sube imágenes desde el administrador.</p>'; return; }
         let html = '';
-        ultimasFotos.forEach(f => { html += `<img class="inicio-foto" src="${f.archivo}" alt="${f.titulo}" data-id="${f.id}">`; });
+        ultimasFotos.forEach(f => { html += `<img class="inicio-foto" src="${f.archivo}" alt="" data-id="${f.id}">`; });
         grid.innerHTML = html;
         document.querySelectorAll('.inicio-foto').forEach(img => {
             img.addEventListener('click', () => {
@@ -259,8 +285,8 @@ cat > ~/zniper-admin/static/index.html << 'EOF'
     }
     function renderFiltros() {
         const container = document.getElementById('filtros');
-        let html = `<button class="filtro-btn activo" data-cat="todos">TODAS</button>`;
-        (datos.categorias || []).forEach(cat => { html += `<button class="filtro-btn" data-cat="${cat}">${cat.toUpperCase()}</button>`; });
+        let html = `<button type="button" class="filtro-btn activo" data-cat="todos">TODAS</button>`;
+        (datos.categorias || []).forEach(cat => { html += `<button type="button" class="filtro-btn" data-cat="${cat}">${cat.toUpperCase()}</button>`; });
         container.innerHTML = html;
         document.querySelectorAll('.filtro-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -276,14 +302,14 @@ cat > ~/zniper-admin/static/index.html << 'EOF'
         const filtradas = categoriaActiva === 'todos' ? fotos : fotos.filter(f => f.categoria === categoriaActiva);
         fotosActuales = filtradas;
         const grid = document.getElementById('galeriaGrid');
-        if (!filtradas.length) { grid.innerHTML = '<p style="text-align:center;">Sin fotos en esta categoría</p>'; return; }
+        if (!filtradas.length) { grid.innerHTML = '<p style="text-align:center; color:#666;">Sin fotos en esta categoría</p>'; return; }
         let html = '';
         filtradas.forEach((f, idx) => {
-            html += `<div class="foto-item" data-index="${idx}"><img class="foto-img" src="${f.archivo}" alt="${f.titulo}" loading="lazy"><div class="foto-info"><div>${f.titulo}</div><div>${f.categoria}</div></div></div>`;
+            html += `<div class="foto-item" data-index="${idx}"><img class="foto-img" src="${f.archivo}" alt="${f.titulo || ''}" loading="lazy"><div class="foto-info"><div>${f.titulo || 'Sin título'}</div><div>${f.categoria || ''}</div></div></div>`;
         });
         grid.innerHTML = html;
         document.querySelectorAll('.foto-item').forEach(el => {
-            el.addEventListener('click', (e) => { const idx = parseInt(el.getAttribute('data-index')); openModalGlobal(idx); });
+            el.addEventListener('click', () => { const idx = parseInt(el.getAttribute('data-index'), 10); openModalGlobal(idx); });
         });
     }
     function openModalGlobal(idx) {
@@ -294,6 +320,10 @@ cat > ~/zniper-admin/static/index.html << 'EOF'
         modal.style.display = 'flex';
         setTimeout(() => { modalImg.style.opacity = '1'; }, 50);
         transicionActiva = false;
+    }
+    function openModalSerie(serieFotos, idx) {
+        fotosActuales = serieFotos.map(f => ({ archivo: f.archivo }));
+        openModalGlobal(idx);
     }
     function nextFoto() {
         if (fotosActuales.length && !transicionActiva) {
@@ -331,10 +361,13 @@ cat > ~/zniper-admin/static/index.html << 'EOF'
     async function renderBlog() {
         const articulos = datos.blog || [];
         const container = document.getElementById('blogList');
-        if (!articulos.length) { container.innerHTML = '<p>Próximamente artículos...</p>'; return; }
+        if (!articulos.length) { container.innerHTML = '<p style="color:#666;">Próximamente artículos...</p>'; return; }
         let html = '';
         [...articulos].reverse().forEach(a => {
-            html += `<div class="articulo-card"><h2><a href="#" data-blog-id="${a.id}" class="blog-link">${a.titulo}</a></h2><div class="fecha">${a.fecha}</div>${a.imagen ? `<img src="${a.imagen}" style="max-width:100%;">` : ''}<p>${a.texto.substring(0, 200)}${a.texto.length > 200 ? '...' : ''}</p></div>`;
+            const t = previewTextoBlog(a);
+            const excerpt = t.substring(0, 220);
+            const im = previewImgBlog(a);
+            html += `<div class="articulo-card"><h2><a href="#" data-blog-id="${a.id}" class="blog-link">${escHtml(a.titulo)}</a></h2><div class="fecha">${escHtml(a.fecha || '')}</div>${im ? `<img src="${im}" style="max-width:100%; filter:grayscale(100%); margin:0.8rem 0;">` : ''}<p style="color:#999; line-height:1.5;">${escHtml(excerpt)}${t.length > 220 ? '…' : ''}</p></div>`;
         });
         container.innerHTML = html;
         document.querySelectorAll('.blog-link').forEach(link => {
@@ -345,16 +378,21 @@ cat > ~/zniper-admin/static/index.html << 'EOF'
             });
         });
     }
-    async function renderSeries() {
+    function renderSeries() {
+        volverSeries();
         const series = datos.series || [];
         const container = document.getElementById('seriesList');
-        if (!series.length) { container.innerHTML = '<p>Próximamente series fotográficas...</p>'; return; }
+        if (!series.length) { container.innerHTML = '<p style="color:#666; text-align:center;">Aún no hay series. Crea una en el admin y añade fotos y texto.</p>'; return; }
         let html = '';
         series.forEach(s => {
+            const desc = (s.descripcion || '').substring(0, 160);
+            const fotos = s.fotos || [];
+            const thumb = fotos.length && fotos[0].archivo ? `<img class="serie-card-thumb" src="${fotos[0].archivo}" alt="">` : '';
             html += `<div class="serie-card" data-serie-id="${s.id}">
+                        ${thumb}
                         <h2><a href="#" class="serie-link" data-id="${s.id}">${s.titulo}</a></h2>
-                        <div class="fecha">${s.fecha}</div>
-                        <p>${s.descripcion.substring(0, 150)}</p>
+                        <div class="fecha">${s.fecha || ''}</div>
+                        <p style="color:#999; font-size:0.9rem; line-height:1.5;">${desc}${(s.descripcion || '').length > 160 ? '…' : ''}</p>
                      </div>`;
         });
         container.innerHTML = html;
@@ -364,71 +402,139 @@ cat > ~/zniper-admin/static/index.html << 'EOF'
                 const id = link.getAttribute('data-id');
                 const res = await fetch(`/api/series/${id}`);
                 const serie = await res.json();
-                // Mostrar la serie dentro de la misma página
-                const mainContent = document.querySelector('.main-content');
-                mainContent.innerHTML = `
-                    <div style="max-width:1000px; margin:0 auto;">
-                        <button onclick="location.reload()">← Volver a series</button>
-                        <h1>${serie.titulo}</h1>
-                        <p>${serie.descripcion}</p>
-                        <div class="galeria-grid">
-                            ${serie.fotos.map(f => `<div class="foto-item"><img class="foto-img" src="${f.archivo}" style="width:100%;"></div>`).join('')}
-                        </div>
-                        <div id="comentarios-serie"></div>
-                        <h3>Comentarios</h3>
-                        <input type="text" id="nickname" placeholder="Tu nombre">
-                        <select id="calificacion"><option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="3">⭐⭐⭐</option><option value="2">⭐⭐</option><option value="1">⭐</option></select>
-                        <textarea id="texto" rows="3" placeholder="Comentario"></textarea>
-                        <button id="enviarComentario">Enviar</button>
-                    </div>
-                `;
-                // Cargar comentarios existentes
-                const comentarios = (datos.comentarios || []).filter(c => c.tipo === 'serie' && c.entidad_id == id && c.aprobado === true);
-                const comentariosDiv = document.getElementById('comentarios-serie');
-                comentariosDiv.innerHTML = comentarios.map(c => `<div style="background:#0a0a0a; padding:0.5rem; margin-bottom:0.5rem;"><strong>${c.nickname}</strong> (${'⭐'.repeat(c.calificacion)})<br>${c.texto}<br><small>${c.fecha}</small></div>`).join('');
-                // Enviar comentario
-                document.getElementById('enviarComentario').onclick = async () => {
-                    const nickname = document.getElementById('nickname').value;
-                    const calificacion = parseInt(document.getElementById('calificacion').value);
-                    const texto = document.getElementById('texto').value;
-                    if (!nickname || !texto) { alert('Completa nombre y comentario'); return; }
-                    await fetch('/api/comentarios', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ tipo: 'serie', entidad_id: id, nickname, calificacion, texto })
-                    });
-                    alert('Comentario enviado');
-                    location.reload();
-                };
+                if (serie.error) return;
+                mostrarSerieDetalle(serie);
             });
         });
+    }
+    function mostrarSerieDetalle(serie) {
+        document.getElementById('seriesBrowse').style.display = 'none';
+        const det = document.getElementById('serieDetalle');
+        det.style.display = 'block';
+        const fotos = Array.isArray(serie.fotos) ? serie.fotos : [];
+        let figs = '';
+        fotos.forEach((f, i) => {
+            const src = f.archivo || '';
+            if (!src) return;
+            const pie = (f.pie || f.leyenda || '').trim();
+            figs += `<figure class="serie-fig"><img src="${src}" alt="" data-serie-idx="${i}">${pie ? `<figcaption>${escHtml(pie)}</figcaption>` : ''}</figure>`;
+        });
+        const comentarios = (datos.comentarios || []).filter(c => c.tipo === 'serie' && String(c.entidad_id) === String(serie.id) && c.aprobado === true);
+        const comHtml = comentarios.map(c => `<div class="comentario-item"><strong>${c.nickname}</strong> (${'⭐'.repeat(c.calificacion || 0)})<br>${c.texto}<br><small style="color:#666;">${c.fecha || ''}</small></div>`).join('');
+        det.innerHTML = `
+            <button type="button" class="volver-series" id="btnVolverSeries">← Series</button>
+            <h1>${serie.titulo || ''}</h1>
+            <div class="serie-prosa">${escHtml((serie.descripcion || '').trim()) || ''}</div>
+            <div class="serie-fotos-editorial">${figs || '<p style="color:#666;">Esta serie aún no tiene fotos. Añádelas desde el administrador.</p>'}</div>
+            <div class="serie-comentarios">
+                <h3>Comentarios</h3>
+                <div id="comentarios-serie-list">${comHtml || '<p style="color:#666; font-size:0.85rem;">Sin comentarios aún.</p>'}</div>
+                <input type="text" id="nickname-serie" placeholder="Tu nombre" autocomplete="name">
+                <select id="calificacion-serie"><option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="3">⭐⭐⭐</option><option value="2">⭐⭐</option><option value="1">⭐</option></select>
+                <textarea id="texto-serie" rows="3" placeholder="Tu comentario"></textarea>
+                <button type="button" id="enviarComentarioSerie">Enviar</button>
+            </div>`;
+        document.getElementById('btnVolverSeries').onclick = () => { volverSeries(); renderSeries(); };
+        det.querySelectorAll('.serie-fig img').forEach(img => {
+            img.addEventListener('click', () => {
+                const i = parseInt(img.getAttribute('data-serie-idx'), 10);
+                openModalSerie(fotos, i);
+            });
+        });
+        const enviar = document.getElementById('enviarComentarioSerie');
+        if (enviar) enviar.onclick = async () => {
+            const nickname = document.getElementById('nickname-serie').value.trim();
+            const calificacion = parseInt(document.getElementById('calificacion-serie').value, 10);
+            const texto = document.getElementById('texto-serie').value.trim();
+            if (!nickname || !texto) { alert('Completa nombre y comentario'); return; }
+            await fetch('/api/comentarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tipo: 'serie', entidad_id: serie.id, nickname, calificacion, texto })
+            });
+            alert('Comentario enviado');
+            const res = await fetch('/api/datos');
+            datos = await res.json();
+            mostrarSerieDetalle(serie);
+        };
     }
     async function renderPagina(slug) {
         const pagina = (datos.paginas || []).find(p => p.slug === slug && p.visible);
         const container = document.getElementById('paginaContenido');
         if (!pagina) { container.innerHTML = '<p>Página no encontrada</p>'; return; }
         if (pagina.tipo === 'normal') {
-            container.innerHTML = `<h1>${pagina.titulo}</h1><div>${pagina.contenido || ''}</div>`;
-        } else if (pagina.tipo === 'sobremi') {
-            let bloques = pagina.contenido || [];
-            let html = `<h1>${pagina.titulo}</h1>`;
-            bloques.forEach((bloque, idx) => {
-                const align = idx % 2 === 0 ? 'left' : 'right';
-                html += `<div style="display:flex; flex-wrap:wrap; gap:2rem; margin:2rem 0; ${align === 'right' ? 'flex-direction: row-reverse;' : ''}">
-                            <div style="flex:1;"><img src="${bloque.imagen}" style="width:100%;"></div>
-                            <div style="flex:1;"><p>${bloque.texto}</p></div>
-                         </div>`;
+            let html = `<h1 style="font-family:'EB Garamond',Georgia,serif;font-weight:400;">${escHtml(pagina.titulo)}</h1>`;
+            const bl = pagina.bloques || [];
+            bl.forEach(b => {
+                if (b.tipo === 'titulo' && (b.texto || '').trim()) html += `<h2 style="font-family:'EB Garamond',Georgia,serif;font-weight:400;font-size:1.5rem;margin:1.5rem 0 0.5rem;">${escHtml(b.texto)}</h2>`;
+                if (b.tipo === 'texto' && (b.texto || '').trim()) html += `<div class="pag-prosa">${escHtml(b.texto)}</div>`;
+                if (b.tipo === 'imagen' && b.archivo) {
+                    const pie = (b.pie || '').trim();
+                    html += `<figure class="pag-fig"><img src="${b.archivo}" alt="">${pie ? `<figcaption>${escHtml(pie)}</figcaption>` : ''}</figure>`;
+                }
             });
+            container.innerHTML = html || `<p style="color:#666;">Contenido vacío. Edita esta página en el administrador.</p>`;
+        } else if (pagina.tipo === 'sobremi') {
+            let html = `<h1 style="font-family:'EB Garamond',Georgia,serif;font-weight:400;">${escHtml(pagina.titulo)}</h1>`;
+            const bl = pagina.bloques || [];
+            if (bl.length) {
+                bl.forEach(b => {
+                    if (b.tipo === 'titulo' && (b.texto || '').trim()) html += `<h2 style="font-family:'EB Garamond',Georgia,serif;font-weight:400;font-size:1.5rem;margin:1.5rem 0 0.5rem;">${escHtml(b.texto)}</h2>`;
+                    if (b.tipo === 'texto' && (b.texto || '').trim()) html += `<div class="pag-prosa">${escHtml(b.texto)}</div>`;
+                    if (b.tipo === 'imagen' && b.archivo) {
+                        const pie = (b.pie || '').trim();
+                        html += `<figure class="pag-fig"><img src="${b.archivo}" alt="">${pie ? `<figcaption>${escHtml(pie)}</figcaption>` : ''}</figure>`;
+                    }
+                });
+            } else {
+                (pagina.contenido || []).forEach((bloque, idx) => {
+                    const align = idx % 2 === 0 ? 'left' : 'right';
+                    html += `<div style="display:flex; flex-wrap:wrap; gap:2rem; margin:2rem 0; ${align === 'right' ? 'flex-direction: row-reverse;' : ''}">
+                            <div style="flex:1;"><img src="${bloque.imagen || ''}" style="width:100%; filter:grayscale(100%);" alt=""></div>
+                            <div style="flex:1;"><div class="pag-prosa">${escHtml(bloque.texto || '')}</div></div>
+                         </div>`;
+                });
+            }
             container.innerHTML = html;
+        } else if (pagina.tipo === 'lista_blog') {
+            container.innerHTML = `<h1 style="font-family:'EB Garamond',Georgia,serif;font-weight:400;">${escHtml(pagina.titulo)}</h1><div id="pagListaBlogInner" class="blog-list" style="max-width:800px;"></div>`;
+            const inner = document.getElementById('pagListaBlogInner');
+            const articulos = datos.blog || [];
+            if (!articulos.length) { inner.innerHTML = '<p style="color:#666;">Sin entradas aún.</p>'; return; }
+            inner.innerHTML = [...articulos].reverse().map(a => {
+                const t = previewTextoBlog(a).substring(0, 200);
+                const im = previewImgBlog(a);
+                return `<div class="articulo-card"><h2><a href="#" data-pl-blog="${a.id}" style="color:#fff;text-decoration:none;">${escHtml(a.titulo)}</a></h2><div class="fecha">${escHtml(a.fecha || '')}</div>${im ? `<img src="${im}" style="max-width:100%;filter:grayscale(100%);">` : ''}<p style="color:#999;">${escHtml(t)}${t.length >= 200 ? '…' : ''}</p></div>`;
+            }).join('');
+            inner.querySelectorAll('[data-pl-blog]').forEach(l => l.addEventListener('click', e => { e.preventDefault(); window.open('/blog/' + l.getAttribute('data-pl-blog'), '_blank'); }));
+        } else if (pagina.tipo === 'lista_series') {
+            container.innerHTML = `<h1 style="font-family:'EB Garamond',Georgia,serif;font-weight:400;">${escHtml(pagina.titulo)}</h1><div id="pagListaSeriesInner" class="series-list"></div>`;
+            const inner = document.getElementById('pagListaSeriesInner');
+            const series = datos.series || [];
+            if (!series.length) { inner.innerHTML = '<p style="color:#666;">Sin series aún.</p>'; return; }
+            inner.innerHTML = series.map(s => {
+                const fotos = s.fotos || [];
+                const thumb = fotos.length && fotos[0].archivo ? `<img class="serie-card-thumb" src="${fotos[0].archivo}" alt="">` : '';
+                const desc = (s.descripcion || '').substring(0, 120);
+                return `<div class="serie-card">${thumb}<h2><a href="#" data-pl-serie="${s.id}" style="color:#fff;text-decoration:none;">${escHtml(s.titulo)}</a></h2><div class="fecha">${escHtml(s.fecha || '')}</div><p style="color:#999;font-size:0.9rem;">${escHtml(desc)}${(s.descripcion || '').length > 120 ? '…' : ''}</p></div>`;
+            }).join('');
+            inner.querySelectorAll('[data-pl-serie]').forEach(l => l.addEventListener('click', e => {
+                e.preventDefault();
+                sections.forEach(sec => sec.classList.remove('active'));
+                document.getElementById('series').classList.add('active');
+                document.getElementById('seriesBrowse').style.display = 'none';
+                fetch('/api/series/' + l.getAttribute('data-pl-serie')).then(r => r.json()).then(serie => { if (!serie.error) mostrarSerieDetalle(serie); });
+                history.pushState(null, '', '#series');
+            }));
         } else if (pagina.tipo === 'galeria') {
             const categoria = pagina.parametros?.categoria || '';
             const fotosFiltradas = (datos.fotos || []).filter(f => f.categoria === categoria);
             let gridHtml = '<div class="galeria-grid">';
-            fotosFiltradas.forEach(f => { gridHtml += `<div class="foto-item"><img class="foto-img" src="${f.archivo}"></div>`; });
+            fotosFiltradas.forEach(f => { gridHtml += `<div class="foto-item"><img class="foto-img" src="${f.archivo}" alt=""></div>`; });
             gridHtml += '</div>';
-            container.innerHTML = `<h1>${pagina.titulo}</h1>${gridHtml}`;
+            container.innerHTML = `<h1 style="font-family:'EB Garamond',Georgia,serif;font-weight:400;">${escHtml(pagina.titulo)}</h1>${gridHtml}`;
         } else {
-            container.innerHTML = `<h1>${pagina.titulo}</h1><p>Tipo de página no implementado aún.</p>`;
+            container.innerHTML = `<h1>${escHtml(pagina.titulo)}</h1><p>Tipo de página no implementado aún.</p>`;
         }
     }
     loadData();

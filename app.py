@@ -43,10 +43,21 @@ DATOS_POR_DEFECTO = {
     "comentarios": [],
     "proximo_comentario_id": 1,
     "moderacion_comentarios": False,
+    "texto_pie": "Zniper Traveling © 2025 · @zniipertraveling",
     "redes_sociales": [
-        {"nombre": "Instagram", "url": "https://instagram.com/znipertraveling", "icono": "📷"}
+        {"nombre": "Instagram", "url": "https://instagram.com/zniipertraveling", "icono": "📷"}
     ],
-    "inicio": {"titulo": "Bienvenido a mi mundo visual"}
+    "inicio": {
+        "titulo": "Bienvenido a mi mundo visual",
+        "pensamiento": "",
+        "num_fotos": 4,
+        "mostrar_subtitulo": True,
+        "mostrar_blog_caja": True,
+        "num_entradas_blog": 3,
+        "etiqueta_fotos": "Reciente",
+        "etiqueta_blog": "Bitácora",
+        "etiqueta_pensamiento": "Pensamiento"
+    }
 }
 
 CREDENCIALES_POR_DEFECTO = {"nickname": "zniper", "password_hash": hashlib.sha256("zniper2026".encode()).hexdigest()}
@@ -56,11 +67,65 @@ def cargar_datos():
         with open(DATOS_FILE, 'w', encoding='utf-8') as f:
             json.dump(DATOS_POR_DEFECTO, f, indent=2, ensure_ascii=False)
     with open(DATOS_FILE, 'r', encoding='utf-8') as f:
-        return json.load(f)
+        datos = json.load(f)
+    if migrar_datos(datos):
+        guardar_datos(datos)
+    return datos
 
 def guardar_datos(datos):
     with open(DATOS_FILE, 'w', encoding='utf-8') as f:
         json.dump(datos, f, indent=2, ensure_ascii=False)
+
+def migrar_datos(datos):
+    """Completa campos nuevos y migra blog/páginas sin romper datos viejos."""
+    changed = False
+    ini_def = DATOS_POR_DEFECTO["inicio"]
+    if "inicio" not in datos or not isinstance(datos["inicio"], dict):
+        datos["inicio"] = dict(ini_def)
+        changed = True
+    else:
+        for k, v in ini_def.items():
+            if k not in datos["inicio"]:
+                datos["inicio"][k] = v
+                changed = True
+    for art in datos.get("blog", []):
+        if not art.get("bloques"):
+            bl = []
+            if art.get("texto"):
+                bl.append({"tipo": "texto", "texto": art["texto"]})
+            if art.get("imagen"):
+                bl.append({"tipo": "imagen", "archivo": art["imagen"], "pie": ""})
+            if not bl:
+                bl = [{"tipo": "texto", "texto": ""}]
+            art["bloques"] = bl
+            changed = True
+    if "texto_pie" not in datos:
+        datos["texto_pie"] = DATOS_POR_DEFECTO["texto_pie"]
+        changed = True
+    for pag in datos.get("paginas", []):
+        if pag.get("tipo") == "normal":
+            if pag.get("contenido") and isinstance(pag["contenido"], str) and pag["contenido"].strip() and not pag.get("bloques"):
+                pag["bloques"] = [{"tipo": "texto", "texto": pag["contenido"]}]
+                changed = True
+            elif not pag.get("bloques"):
+                pag["bloques"] = [{"tipo": "texto", "texto": ""}]
+                changed = True
+        if pag.get("tipo") == "sobremi":
+            if pag.get("contenido") and not pag.get("bloques"):
+                bl = []
+                for bloque in pag["contenido"]:
+                    if bloque.get("imagen"):
+                        bl.append({"tipo": "imagen", "archivo": bloque["imagen"], "pie": ""})
+                    if bloque.get("texto"):
+                        bl.append({"tipo": "texto", "texto": bloque["texto"]})
+                if not bl:
+                    bl = [{"tipo": "texto", "texto": ""}]
+                pag["bloques"] = bl
+                changed = True
+            elif not pag.get("bloques"):
+                pag["bloques"] = [{"tipo": "texto", "texto": ""}]
+                changed = True
+    return changed
 
 def cargar_credenciales():
     if not os.path.exists(CREDENCIALES_FILE):
@@ -94,6 +159,14 @@ def admin():
 @app.route('/login')
 def login_page():
     return send_from_directory('static', 'login.html')
+
+@app.route('/blog/<int:id>')
+def blog_articulo(id):
+    return send_from_directory('static', 'articulo.html')
+
+@app.route('/serie/<int:id>')
+def serie_pagina(id):
+    return send_from_directory('static', 'serie.html')
 
 @app.route('/static/<path:filename>')
 def static_files(filename):
@@ -133,6 +206,7 @@ def get_datos():
         "comentarios": datos["comentarios"],
         "moderacion_comentarios": datos.get("moderacion_comentarios", False),
         "redes_sociales": datos.get("redes_sociales", []),
+        "texto_pie": datos.get("texto_pie", "Zniper Traveling © 2025"),
         "inicio": datos.get("inicio", {"titulo": "Bienvenido"})
     })
 
@@ -141,7 +215,7 @@ def get_datos():
 def update_datos():
     datos = cargar_datos()
     data = request.json
-    for key in ['titulo', 'subtitulo', 'firma', 'categorias', 'moderacion_comentarios', 'redes_sociales', 'inicio']:
+    for key in ['titulo', 'subtitulo', 'firma', 'categorias', 'moderacion_comentarios', 'redes_sociales', 'texto_pie', 'inicio']:
         if key in data:
             datos[key] = data[key]
     guardar_datos(datos)
@@ -185,6 +259,30 @@ def delete_foto(foto_id):
     guardar_datos(datos)
     return jsonify({"success": True})
 
+@app.route('/api/categorias/reasignar', methods=['POST'])
+@login_required
+def reasignar_categoria():
+    """Elimina una categoría y mueve sus fotos a otra."""
+    datos = cargar_datos()
+    data = request.json or {}
+    vieja = data.get("eliminar")
+    nueva = data.get("nueva")
+    if not vieja or not nueva or vieja == nueva:
+        return jsonify({"error": "Parámetros inválidos"}), 400
+    cats = datos.get("categorias", [])
+    if len(cats) <= 1:
+        return jsonify({"error": "Debe existir al menos una categoría"}), 400
+    if vieja not in cats:
+        return jsonify({"error": "Categoría inexistente"}), 400
+    if nueva not in cats or nueva == vieja:
+        return jsonify({"error": "Elige otra categoría válida para reasignar las fotos"}), 400
+    datos["categorias"] = [c for c in cats if c != vieja]
+    for f in datos.get("fotos", []):
+        if f.get("categoria") == vieja:
+            f["categoria"] = nueva
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
 @app.route('/api/fotos/reordenar', methods=['POST'])
 @login_required
 def reordenar_fotos():
@@ -201,17 +299,48 @@ def reordenar_fotos():
 def add_blog():
     datos = cargar_datos()
     data = request.json
+    bloques = data.get('bloques')
+    if not bloques:
+        bloques = [{"tipo": "texto", "texto": data.get('texto', '')}]
+        if data.get('imagen'):
+            bloques.append({"tipo": "imagen", "archivo": data['imagen'], "pie": ""})
+    texto_plano = "\n\n".join(
+        b.get("texto", "") for b in bloques if b.get("tipo") in ("texto", "titulo")
+    )
+    primera_img = next(
+        (b.get("archivo") for b in bloques if b.get("tipo") == "imagen" and b.get("archivo")),
+        ""
+    )
     nuevo = {
         "id": datos["proximo_blog_id"],
         "titulo": data.get('titulo', 'Sin título'),
-        "texto": data.get('texto', ''),
-        "imagen": data.get('imagen', ''),
+        "texto": texto_plano,
+        "imagen": primera_img,
+        "bloques": bloques,
         "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
     datos["blog"].append(nuevo)
     datos["proximo_blog_id"] += 1
     guardar_datos(datos)
     return jsonify({"success": True, "articulo": nuevo})
+
+def _sincronizar_blog_legacy(art):
+    bl = art.get("bloques") or []
+    art["texto"] = "\n\n".join(
+        b.get("texto", "") for b in bl if b.get("tipo") in ("texto", "titulo")
+    )
+    art["imagen"] = next(
+        (b.get("archivo") for b in bl if b.get("tipo") == "imagen" and b.get("archivo")),
+        ""
+    )
+
+@app.route('/api/blog/<int:id>', methods=['GET'])
+def get_blog_articulo(id):
+    datos = cargar_datos()
+    art = next((a for a in datos.get("blog", []) if a["id"] == id), None)
+    if not art:
+        return jsonify({"error": "No encontrado"}), 404
+    return jsonify(art)
 
 @app.route('/api/blog/<int:id>', methods=['PUT'])
 @login_required
@@ -221,6 +350,8 @@ def update_blog(id):
     for art in datos["blog"]:
         if art["id"] == id:
             art.update(data)
+            if "bloques" in data:
+                _sincronizar_blog_legacy(art)
             break
     guardar_datos(datos)
     return jsonify({"success": True})
@@ -230,6 +361,16 @@ def update_blog(id):
 def delete_blog(id):
     datos = cargar_datos()
     datos["blog"] = [a for a in datos["blog"] if a["id"] != id]
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/blog/reordenar', methods=['POST'])
+@login_required
+def reordenar_blog():
+    datos = cargar_datos()
+    ids = request.json.get('ids', [])
+    blog_dict = {a["id"]: a for a in datos["blog"]}
+    datos["blog"] = [blog_dict[i] for i in ids if i in blog_dict]
     guardar_datos(datos)
     return jsonify({"success": True})
 
@@ -279,6 +420,35 @@ def delete_serie(id):
     guardar_datos(datos)
     return jsonify({"success": True})
 
+@app.route('/api/series/reordenar', methods=['POST'])
+@login_required
+def reordenar_series():
+    datos = cargar_datos()
+    ids = request.json.get('ids', [])
+    s_dict = {s["id"]: s for s in datos["series"]}
+    datos["series"] = [s_dict[i] for i in ids if i in s_dict]
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
+@app.route('/api/series/<int:id>/fotos/reordenar', methods=['POST'])
+@login_required
+def reordenar_fotos_serie(id):
+    datos = cargar_datos()
+    orden = request.json.get('orden')
+    if not isinstance(orden, list):
+        return jsonify({"error": "orden inválido"}), 400
+    for serie in datos["series"]:
+        if serie["id"] == id:
+            fotos = serie.get("fotos") or []
+            if len(orden) != len(fotos) or set(orden) != set(range(len(fotos))):
+                return jsonify({"error": "orden incompleto"}), 400
+            serie["fotos"] = [fotos[i] for i in orden]
+            break
+    else:
+        return jsonify({"error": "Serie no encontrada"}), 404
+    guardar_datos(datos)
+    return jsonify({"success": True})
+
 # CRUD Páginas
 @app.route('/api/paginas', methods=['POST'])
 @login_required
@@ -286,15 +456,29 @@ def add_pagina():
     datos = cargar_datos()
     data = request.json
     slug = data.get('slug', data.get('titulo', '').lower().replace(' ', '-'))
+    tipo = data.get('tipo', 'normal')
+    if tipo == 'sobremi':
+        contenido = []
+    elif tipo == 'normal':
+        contenido = ''
+    else:
+        contenido = data.get('contenido', '')
     nueva = {
         "id": datos["proximo_pagina_id"],
         "titulo": data.get('titulo', 'Nueva página'),
         "slug": slug,
-        "tipo": data.get('tipo', 'normal'),
-        "contenido": data.get('contenido', [] if data.get('tipo')=='sobremi' else ''),
+        "tipo": tipo,
+        "contenido": contenido,
         "parametros": data.get('parametros', {}),
         "visible": data.get('visible', True)
     }
+    if tipo == 'normal':
+        nueva["bloques"] = data.get('bloques', [{"tipo": "texto", "texto": ""}])
+    elif tipo == 'sobremi':
+        nueva["bloques"] = data.get('bloques', [{"tipo": "texto", "texto": ""}])
+    elif tipo in ('lista_blog', 'lista_series'):
+        nueva["contenido"] = ''
+        nueva["parametros"] = data.get('parametros', {})
     datos["paginas"].append(nueva)
     datos["proximo_pagina_id"] += 1
     guardar_datos(datos)
